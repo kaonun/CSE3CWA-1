@@ -8,7 +8,7 @@ import Toggle from "@/components/ui/Toggle";
 import NumberInput from "@/components/ui/NumberInput";
 import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
 import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
-import { bySymbol } from "@/data/phonemes";
+import WordlePreview from "@/components/wordle/WordlePreview";
 import styles from "./page.module.css";
 
 const MIN_GUESSES = 3;
@@ -81,15 +81,12 @@ export default function WordlePage() {
   );
 
   const preview = (
-    <div className={styles.previewPlaceholder}>
-      <p>Live preview lands in the next step.</p>
-      <p>
-        Phoneme word:{" "}
-        {phonemeWord.length > 0
-          ? phonemeWord.map((symbol) => bySymbol(symbol).label).join(" ")
-          : "—"}
-      </p>
-    </div>
+    <WordlePreview
+      answer={phonemeWord}
+      englishWord={englishWord}
+      maxGuesses={guesses}
+      showHints={showHints}
+    />
   );
 
   return <BuilderLayout controls={controls} preview={preview} />;

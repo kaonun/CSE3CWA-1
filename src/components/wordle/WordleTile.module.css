@@ -1,0 +1,46 @@
+.tile {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.correct {
+  background: var(--color-correct-bg);
+  border-color: var(--color-correct-bg);
+  border-style: solid;
+  color: var(--color-correct-ink);
+}
+
+.present {
+  background: var(--color-present-bg);
+  border-color: var(--color-present-ink);
+  border-style: dashed;
+  color: var(--color-present-ink);
+}
+
+.absent {
+  background: var(--color-absent-bg);
+  border-style: dotted;
+  color: var(--color-absent-ink);
+}
+
+.icon {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.label {
+  font-size: 0.9rem;
+}
