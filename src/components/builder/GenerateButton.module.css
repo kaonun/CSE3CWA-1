@@ -9,11 +9,19 @@
   cursor: pointer;
 }
 
-.button:hover {
+.button:hover:not(:disabled) {
   filter: brightness(1.05);
 }
 
 .button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.prominent {
+  width: 100%;
+  min-height: 52px;
+  padding: var(--space-3) var(--space-4);
+  font-size: 1.05rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
 }

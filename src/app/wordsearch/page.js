@@ -10,6 +10,7 @@ import WordSearchGrid from "@/components/wordsearch/WordSearchGrid";
 import { generateWordSearch } from "@/lib/wordsearch/generate";
 import { buildHtml } from "@/lib/export/buildHtml";
 import { downloadHtml } from "@/lib/export/download";
+import { getActiveTheme } from "@/lib/theme";
 import styles from "./page.module.css";
 
 const MIN_SIZE = 6;
@@ -80,6 +81,7 @@ export default function WordSearchPage() {
   const handleGenerate = () => {
     const html = buildHtml({
       type: "wordsearch",
+      theme: getActiveTheme(),
       config: {
         grid: result.grid,
         placements: result.placements,

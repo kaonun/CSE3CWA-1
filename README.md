@@ -12,6 +12,7 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)**.
 - Playable Wordle preview with duplicate-aware two-pass scoring.
 - Word Search generation with configurable size and easy/hard placement rules.
 - One-click export to self-contained, offline `.html` activities.
+- Generated activities retain the teacher's active light or dark theme.
 - Cookie-persisted light/dark theme with system-preference fallback.
 - Responsive layouts, visible focus styles, live status announcements, and non-colour-only game states.
 

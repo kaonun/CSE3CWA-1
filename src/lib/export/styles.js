@@ -1,6 +1,4 @@
-export function styles() {
-  return `
-:root {
+const LIGHT_THEME = `
   --color-bg: #f6f7f8;
   --color-surface: #ffffff;
   --color-surface-muted: #eceef1;
@@ -15,7 +13,31 @@ export function styles() {
   --color-present-bg: #f0b429;
   --color-present-ink: #1b2130;
   --color-absent-bg: #eceef1;
-  --color-absent-ink: #565f73;
+  --color-absent-ink: #565f73;`;
+
+const DARK_THEME = `
+  --color-bg: #12151c;
+  --color-surface: #1a1e28;
+  --color-surface-muted: #232838;
+  --color-ink: #e8eaef;
+  --color-ink-muted: #a7adbd;
+  --color-border: #2d3241;
+  --color-accent: #6d9bff;
+  --color-accent-ink: #0b1220;
+  --color-focus: #6d9bff;
+  --color-correct-bg: #2fa968;
+  --color-correct-ink: #0b1220;
+  --color-present-bg: #d99a1f;
+  --color-present-ink: #0b1220;
+  --color-absent-bg: #232838;
+  --color-absent-ink: #a7adbd;`;
+
+export function styles(theme = "light") {
+  const isDark = theme === "dark";
+
+  return `
+:root {
+${isDark ? DARK_THEME : LIGHT_THEME}
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -23,28 +45,7 @@ export function styles() {
   --space-2: 0.5rem;
   --space-3: 1rem;
   --space-4: 1.5rem;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #12151c;
-    --color-surface: #1a1e28;
-    --color-surface-muted: #232838;
-    --color-ink: #e8eaef;
-    --color-ink-muted: #a7adbd;
-    --color-border: #2d3241;
-    --color-accent: #6d9bff;
-    --color-accent-ink: #0b1220;
-    --color-focus: #6d9bff;
-    --color-correct-bg: #2fa968;
-    --color-correct-ink: #0b1220;
-    --color-present-bg: #d99a1f;
-    --color-present-ink: #0b1220;
-    --color-absent-bg: #232838;
-    --color-absent-ink: #a7adbd;
-    color-scheme: dark;
-  }
+  color-scheme: ${isDark ? "dark" : "light"};
 }
 
 * { box-sizing: border-box; }

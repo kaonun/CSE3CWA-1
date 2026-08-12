@@ -3,12 +3,15 @@ import { styles } from "./styles.js";
 import { wordleTemplate } from "./wordleTemplate.js";
 import { wordsearchTemplate } from "./wordsearchTemplate.js";
 
-export function buildHtml({ type, config }) {
+export function buildHtml({ type, config, theme = "light" }) {
+  const exportTheme = theme === "dark" ? "dark" : "light";
+
   if (type === "wordle") {
     const { body, script } = wordleTemplate(config);
     return documentShell({
       title: "Phoneme Wordle",
-      styles: styles(),
+      theme: exportTheme,
+      styles: styles(exportTheme),
       body,
       script,
     });
@@ -18,7 +21,8 @@ export function buildHtml({ type, config }) {
     const { body, script } = wordsearchTemplate(config);
     return documentShell({
       title: "Phoneme Word Search",
-      styles: styles(),
+      theme: exportTheme,
+      styles: styles(exportTheme),
       body,
       script,
     });

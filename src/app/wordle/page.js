@@ -11,6 +11,7 @@ import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
 import WordlePreview from "@/components/wordle/WordlePreview";
 import { buildHtml } from "@/lib/export/buildHtml";
 import { downloadHtml } from "@/lib/export/download";
+import { getActiveTheme } from "@/lib/theme";
 import styles from "./page.module.css";
 
 const MIN_GUESSES = 3;
@@ -40,6 +41,7 @@ export default function WordlePage() {
   const handleGenerate = () => {
     const html = buildHtml({
       type: "wordle",
+      theme: getActiveTheme(),
       config: {
         answer: phonemeWord,
         englishWord,
@@ -54,10 +56,6 @@ export default function WordlePage() {
     <div className={styles.controls}>
       <div className={styles.header}>
         <h2>Wordle builder</h2>
-        <GenerateButton
-          onClick={handleGenerate}
-          disabled={phonemeWord.length === 0}
-        />
       </div>
 
       <SettingsField label="Phoneme word">
@@ -95,17 +93,36 @@ export default function WordlePage() {
         min={MIN_GUESSES}
         max={MAX_GUESSES}
       />
+
+      <div className={styles.generateAction}>
+        <GenerateButton
+          onClick={handleGenerate}
+          disabled={phonemeWord.length === 0}
+          prominent
+        >
+          Generate Wordle activity
+        </GenerateButton>
+        <p className={styles.generateHint}>
+          Downloads a standalone HTML activity using your current theme.
+        </p>
+      </div>
     </div>
   );
 
   const preview = (
-    <WordlePreview
-      key={`${JSON.stringify(phonemeWord)}:${guesses}`}
-      answer={phonemeWord}
-      englishWord={englishWord}
-      maxGuesses={guesses}
-      showHints={showHints}
-    />
+    <section className={styles.previewSection} aria-labelledby="wordle-preview-title">
+      <h2 id="wordle-preview-title">Live preview</h2>
+      <p className={styles.previewHint}>
+        Test the activity here before downloading the student version.
+      </p>
+      <WordlePreview
+        key={`${JSON.stringify(phonemeWord)}:${guesses}`}
+        answer={phonemeWord}
+        englishWord={englishWord}
+        maxGuesses={guesses}
+        showHints={showHints}
+      />
+    </section>
   );
 
   return <BuilderLayout controls={controls} preview={preview} />;

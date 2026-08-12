@@ -1,8 +1,10 @@
 import { escapeHtml } from "./escapeHtml.js";
 
-export function documentShell({ title, styles, body, script }) {
+export function documentShell({ title, theme = "light", styles, body, script }) {
+  const documentTheme = theme === "dark" ? "dark" : "light";
+
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="${documentTheme}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
