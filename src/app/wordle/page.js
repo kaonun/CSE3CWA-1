@@ -9,6 +9,8 @@ import NumberInput from "@/components/ui/NumberInput";
 import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
 import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
 import WordlePreview from "@/components/wordle/WordlePreview";
+import { buildHtml } from "@/lib/export/buildHtml";
+import { downloadHtml } from "@/lib/export/download";
 import styles from "./page.module.css";
 
 const MIN_GUESSES = 3;
@@ -35,11 +37,27 @@ export default function WordlePage() {
     setGuesses(Math.min(MAX_GUESSES, Math.max(MIN_GUESSES, value)));
   };
 
+  const handleGenerate = () => {
+    const html = buildHtml({
+      type: "wordle",
+      config: {
+        answer: phonemeWord,
+        englishWord,
+        maxGuesses: guesses,
+        showHints,
+      },
+    });
+    downloadHtml("phonemele-wordle.html", html);
+  };
+
   const controls = (
     <div className={styles.controls}>
       <div className={styles.header}>
         <h2>Wordle builder</h2>
-        <GenerateButton onClick={() => {}} />
+        <GenerateButton
+          onClick={handleGenerate}
+          disabled={phonemeWord.length === 0}
+        />
       </div>
 
       <SettingsField label="Phoneme word">
