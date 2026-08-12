@@ -7,9 +7,9 @@ export function styles() {
   --color-ink: #1b2130;
   --color-ink-muted: #565f73;
   --color-border: #d7dbe2;
-  --color-accent: #2f6feb;
+  --color-accent: #2558c4;
   --color-accent-ink: #ffffff;
-  --color-focus: #2f6feb;
+  --color-focus: #2558c4;
   --color-correct-bg: #1a7a4c;
   --color-correct-ink: #ffffff;
   --color-present-bg: #f0b429;

@@ -29,7 +29,7 @@
   background: var(--color-surface-muted);
 }
 
-.card h2 {
+.card h3 {
   margin: 0 0 var(--space-1);
   font-size: 1.1rem;
 }

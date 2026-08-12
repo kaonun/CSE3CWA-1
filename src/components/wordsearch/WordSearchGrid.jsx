@@ -72,13 +72,16 @@ export default function WordSearchGrid({ grid, placements, failed }) {
 
   return (
     <div className={styles.wrapper}>
-      {allFound && <p className={styles.complete}>All words found!</p>}
-      {failed.length > 0 && (
-        <p className={styles.warning}>
-          Could not fit {failed.length} word{failed.length === 1 ? "" : "s"} —
-          try a bigger grid or a shorter word list.
-        </p>
-      )}
+      <div aria-live="polite">
+        {allFound && <p className={styles.complete}>All words found!</p>}
+        {failed.length > 0 && (
+          <p className={styles.warning}>
+            Could not fit {failed.length} word
+            {failed.length === 1 ? "" : "s"} — try a bigger grid or a shorter
+            word list.
+          </p>
+        )}
+      </div>
       <div
         className={styles.grid}
         role="group"

@@ -69,27 +69,33 @@ export default function WordlePreview({
         scores={scores}
       />
 
-      {gameOver ? (
-        <div className={styles.result}>
-          <p>{won ? "Solved!" : "Out of guesses."}</p>
-          <p>
-            English word: <strong>{englishWord || "(not set)"}</strong>
-          </p>
-          <button
-            type="button"
-            className={styles.actionButton}
-            onClick={handleReset}
-          >
-            Try again
-          </button>
-        </div>
-      ) : (
-        <>
+      <div aria-live="polite">
+        {gameOver ? (
+          <div className={styles.result}>
+            <p>{won ? "Solved!" : "Out of guesses."}</p>
+            <p>
+              English word: <strong>{englishWord || "(not set)"}</strong>
+            </p>
+          </div>
+        ) : (
           <p className={styles.attempts}>
             {attemptsLeft} guess{attemptsLeft === 1 ? "" : "es"} left —
             guess needs {answer.length} phonemes (currently{" "}
             {currentGuess.length})
           </p>
+        )}
+      </div>
+
+      {gameOver ? (
+        <button
+          type="button"
+          className={styles.actionButton}
+          onClick={handleReset}
+        >
+          Try again
+        </button>
+      ) : (
+        <>
           <PhonemeWordDisplay
             word={currentGuess}
             onRemoveAt={handleRemoveAt}

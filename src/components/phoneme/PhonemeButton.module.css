@@ -20,12 +20,6 @@
   background: var(--color-surface-muted);
 }
 
-.button[aria-pressed="true"] {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-accent-ink);
-}
-
 .button:disabled {
   opacity: 0.4;
   cursor: not-allowed;

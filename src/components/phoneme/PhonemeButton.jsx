@@ -8,7 +8,6 @@ export default function PhonemeButton({
   symbol,
   label,
   onClick,
-  selected = false,
   disabled = false,
   showHint = true,
 }) {
@@ -19,7 +18,6 @@ export default function PhonemeButton({
       <button
         type="button"
         className={styles.button}
-        aria-pressed={selected}
         aria-describedby={showHint ? hintId : undefined}
         disabled={disabled}
         onClick={() => onClick?.(symbol)}
