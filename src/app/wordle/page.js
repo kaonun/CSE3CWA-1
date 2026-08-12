@@ -100,6 +100,7 @@ export default function WordlePage() {
 
   const preview = (
     <WordlePreview
+      key={`${JSON.stringify(phonemeWord)}:${guesses}`}
       answer={phonemeWord}
       englishWord={englishWord}
       maxGuesses={guesses}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import WordleGrid from "./WordleGrid";
 import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
 import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
@@ -16,12 +16,6 @@ export default function WordlePreview({
   const [currentGuess, setCurrentGuess] = useState([]);
   const [submittedGuesses, setSubmittedGuesses] = useState([]);
   const [scores, setScores] = useState([]);
-
-  useEffect(() => {
-    setCurrentGuess([]);
-    setSubmittedGuesses([]);
-    setScores([]);
-  }, [answer.join(","), maxGuesses]);
 
   if (answer.length === 0) {
     return (

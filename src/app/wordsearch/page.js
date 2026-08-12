@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import BuilderLayout from "@/components/builder/BuilderLayout";
 import SettingsField from "@/components/builder/SettingsField";
 import GenerateButton from "@/components/builder/GenerateButton";
@@ -14,6 +14,11 @@ import styles from "./page.module.css";
 
 const MIN_SIZE = 6;
 const MAX_SIZE = 15;
+const EMPTY_RESULT = { grid: [], placements: [], failed: [] };
+
+const subscribeToHydration = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 const DEFAULT_WORDS = [
   ["k", "æ", "t"], // cat
@@ -53,20 +58,24 @@ export default function WordSearchPage() {
     setSize(Math.min(MAX_SIZE, Math.max(MIN_SIZE, value)));
   };
 
-  // Grid generation uses Math.random(), so it must run client-only — doing
-  // it during render would make the server-rendered grid disagree with the
-  // client's on hydration. Starting from an empty grid keeps first paint
-  // identical on both sides; the effect fills in the real layout after mount.
-  const [result, setResult] = useState({ grid: [], placements: [], failed: [] });
+  // Grid generation uses Math.random(), so it must not run during server
+  // rendering: the server and browser would produce different grids. This
+  // hydration snapshot keeps the first render empty on both sides, then
+  // computes the puzzle once the client is ready.
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
 
-  useEffect(() => {
-    const opts = {
+  const result = useMemo(() => {
+    if (!isHydrated) return EMPTY_RESULT;
+
+    return generateWordSearch(words, size, {
       diagonals: difficulty === "hard",
       reversals: difficulty === "hard",
-    };
-    setResult(generateWordSearch(words, size, opts));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(words), size, difficulty]);
+    });
+  }, [isHydrated, words, size, difficulty]);
 
   const handleGenerate = () => {
     const html = buildHtml({
@@ -85,7 +94,7 @@ export default function WordSearchPage() {
         <h2>Word Search builder</h2>
         <GenerateButton
           onClick={handleGenerate}
-          disabled={words.length === 0}
+          disabled={words.length === 0 || result.grid.length === 0}
         />
       </div>
 
