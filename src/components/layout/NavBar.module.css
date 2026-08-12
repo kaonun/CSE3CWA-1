@@ -10,6 +10,7 @@
 }
 
 .tabs {
+  flex: 1;
   display: flex;
   list-style: none;
   gap: var(--space-1);
@@ -23,6 +24,7 @@
   text-decoration: none;
   color: var(--color-ink);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .tab:hover {
@@ -35,6 +37,8 @@
 }
 
 .hamburgerTrigger {
+  flex: 0 0 auto;
+  align-self: center;
   display: flex;
   align-items: center;
   gap: var(--space-2);

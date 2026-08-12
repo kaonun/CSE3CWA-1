@@ -30,3 +30,8 @@
 .link:hover {
   background: var(--color-surface-muted);
 }
+
+.link[aria-current="page"] {
+  color: var(--color-accent-ink);
+  background: var(--color-accent);
+}

@@ -1,20 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { NAV_LINKS } from "./navigationLinks";
 import styles from "./HamburgerMenu.module.css";
 
-const LINKS = [
-  { href: "/about", label: "About" },
-  { href: "/settings", label: "Settings" },
-];
-
-export default function HamburgerMenu({ id, open, onClose }) {
+export default function HamburgerMenu({ id, open, pathname, onClose }) {
   return (
     <div id={id} className={styles.menu} hidden={!open}>
       <ul className={styles.list}>
-        {LINKS.map((link) => (
+        {NAV_LINKS.map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className={styles.link} onClick={onClose}>
+            <Link
+              href={link.href}
+              className={styles.link}
+              aria-current={pathname === link.href ? "page" : undefined}
+              onClick={onClose}
+            >
               {link.label}
             </Link>
           </li>

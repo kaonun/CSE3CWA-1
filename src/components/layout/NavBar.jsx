@@ -4,13 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import HamburgerMenu from "./HamburgerMenu";
+import { NAV_LINKS } from "./navigationLinks";
 import styles from "./NavBar.module.css";
-
-const TABS = [
-  { href: "/", label: "Home" },
-  { href: "/wordle", label: "Wordle" },
-  { href: "/wordsearch", label: "Word Search" },
-];
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -34,7 +29,7 @@ export default function NavBar() {
   return (
     <nav className={styles.nav} aria-label="Primary">
       <ul className={styles.tabs}>
-        {TABS.map((tab) => (
+        {NAV_LINKS.map((tab) => (
           <li key={tab.href}>
             <Link
               href={tab.href}
@@ -59,7 +54,12 @@ export default function NavBar() {
         Menu
       </button>
 
-      <HamburgerMenu id="hamburger-menu" open={menuOpen} onClose={closeMenu} />
+      <HamburgerMenu
+        id="hamburger-menu"
+        open={menuOpen}
+        pathname={pathname}
+        onClose={closeMenu}
+      />
     </nav>
   );
 }
