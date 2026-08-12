@@ -1,8 +1,7 @@
 import styles from "./page.module.css";
 
-// Paste the unlisted YouTube embed URL here once the walkthrough is
-// recorded, e.g. "https://www.youtube.com/embed/VIDEO_ID".
-const VIDEO_URL = "";
+const VIDEO_URL = "https://www.youtube-nocookie.com/embed/pqoXVBFV7K4";
+const YOUTUBE_URL = "https://youtu.be/pqoXVBFV7K4";
 
 export const metadata = {
   title: "About — Phoneme'le",
@@ -57,20 +56,23 @@ export default function AboutPage() {
 
       <section className={styles.video}>
         <h2>How it works</h2>
-        {VIDEO_URL ? (
-          <div className={styles.videoFrame}>
-            <iframe
-              src={VIDEO_URL}
-              title="Phoneme'le walkthrough"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        ) : (
-          <p className={styles.videoPlaceholder}>
-            Video walkthrough coming soon.
-          </p>
-        )}
+        <div className={styles.videoFrame}>
+          <iframe
+            src={VIDEO_URL}
+            title="Phoneme'le application walkthrough"
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+        <p className={styles.videoLink}>
+          If the embedded player is unavailable,{" "}
+          <a href={YOUTUBE_URL} target="_blank" rel="noreferrer">
+            watch the walkthrough on YouTube
+          </a>
+          .
+        </p>
       </section>
 
       <section>

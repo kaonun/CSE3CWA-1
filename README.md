@@ -89,7 +89,7 @@ The exact grid shown in the preview is embedded in the exported file, so student
 | `/` | Project landing page |
 | `/wordle` | Wordle builder, preview, and export |
 | `/wordsearch` | Word Search builder, preview, and export |
-| `/about` | Project scope, tool descriptions, author details, and video slot |
+| `/about` | Project scope, tool descriptions, author details, and walkthrough video |
 | `/settings` | Cookie-persisted light/dark theme control |
 
 ## Project structure
@@ -126,6 +126,6 @@ src/
 
 ## Assessment scope
 
-This is CSE3CWA Assessment 1 and is intentionally frontend-only. The phoneme inventory and starter Word Search list are fixed local data; there is no database, account system, or dynamic word-list service. The About page currently shows a video placeholder until the unlisted walkthrough video is recorded and linked.
+This is CSE3CWA Assessment 1 and is intentionally frontend-only. The phoneme inventory and starter Word Search list are fixed local data; there is no database, account system, or dynamic word-list service. The About page includes an embedded unlisted walkthrough video.
 
 Repository: [github.com/kaonun/CSE3CWA-1](https://github.com/kaonun/CSE3CWA-1)

@@ -42,14 +42,13 @@
   border: 0;
 }
 
-.videoPlaceholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 16 / 9;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-ink-muted);
-  font-style: italic;
+.videoLink {
   margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.9rem;
+}
+
+.videoLink a {
+  color: var(--color-accent);
+  font-weight: 600;
 }
