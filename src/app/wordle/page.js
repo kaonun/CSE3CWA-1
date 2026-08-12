@@ -1,0 +1,96 @@
+"use client";
+
+import { useState } from "react";
+import BuilderLayout from "@/components/builder/BuilderLayout";
+import SettingsField from "@/components/builder/SettingsField";
+import GenerateButton from "@/components/builder/GenerateButton";
+import Toggle from "@/components/ui/Toggle";
+import NumberInput from "@/components/ui/NumberInput";
+import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
+import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
+import { bySymbol } from "@/data/phonemes";
+import styles from "./page.module.css";
+
+const MIN_GUESSES = 3;
+const MAX_GUESSES = 8;
+
+export default function WordlePage() {
+  const [phonemeWord, setPhonemeWord] = useState([]);
+  const [englishWord, setEnglishWord] = useState("");
+  const [showHints, setShowHints] = useState(true);
+  const [guesses, setGuesses] = useState(6);
+
+  const handleSelectPhoneme = (symbol) =>
+    setPhonemeWord((word) => [...word, symbol]);
+
+  const handleRemoveAt = (index) =>
+    setPhonemeWord((word) => word.filter((_, i) => i !== index));
+
+  const handleBackspace = () => setPhonemeWord((word) => word.slice(0, -1));
+
+  const handleClear = () => setPhonemeWord([]);
+
+  const handleGuessesChange = (value) => {
+    if (Number.isNaN(value)) return;
+    setGuesses(Math.min(MAX_GUESSES, Math.max(MIN_GUESSES, value)));
+  };
+
+  const controls = (
+    <div className={styles.controls}>
+      <div className={styles.header}>
+        <h2>Wordle builder</h2>
+        <GenerateButton onClick={() => {}} />
+      </div>
+
+      <SettingsField label="Phoneme word">
+        <PhonemeWordDisplay
+          word={phonemeWord}
+          onRemoveAt={handleRemoveAt}
+          onBackspace={handleBackspace}
+          onClear={handleClear}
+        />
+        <PhonemeKeyboard onSelect={handleSelectPhoneme} />
+      </SettingsField>
+
+      <SettingsField label="English word" htmlFor="english-word">
+        <input
+          id="english-word"
+          type="text"
+          className={styles.textInput}
+          value={englishWord}
+          onChange={(event) => setEnglishWord(event.target.value)}
+        />
+      </SettingsField>
+
+      <Toggle
+        id="show-hints"
+        label="Show hints"
+        checked={showHints}
+        onChange={setShowHints}
+      />
+
+      <NumberInput
+        id="guess-count"
+        label="Number of guesses"
+        value={guesses}
+        onChange={handleGuessesChange}
+        min={MIN_GUESSES}
+        max={MAX_GUESSES}
+      />
+    </div>
+  );
+
+  const preview = (
+    <div className={styles.previewPlaceholder}>
+      <p>Live preview lands in the next step.</p>
+      <p>
+        Phoneme word:{" "}
+        {phonemeWord.length > 0
+          ? phonemeWord.map((symbol) => bySymbol(symbol).label).join(" ")
+          : "—"}
+      </p>
+    </div>
+  );
+
+  return <BuilderLayout controls={controls} preview={preview} />;
+}
