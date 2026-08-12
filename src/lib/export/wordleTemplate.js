@@ -38,7 +38,16 @@ export function wordleTemplate(config) {
   }
   function hintFor(sym) {
     var p = bySymbol(sym);
-    return p.label + " as in " + p.example;
+    return p.label + " (as in " + p.example + ")";
+  }
+  function formatPhoneme(sym) {
+    return "/" + sym + "/";
+  }
+  function formatPhonemeWord(word) {
+    return "/" + word.join(" ") + "/";
+  }
+  function describePhoneme(sym) {
+    return "Phoneme " + formatPhoneme(sym) + ": " + hintFor(sym);
   }
 
   function scoreGuess(guess, answer) {
@@ -114,8 +123,9 @@ export function wordleTemplate(config) {
           var p = bySymbol(symbol);
           cell.setAttribute(
             "aria-label",
-            cellState ? hintFor(symbol) + ", " + stateLabel(cellState) : hintFor(symbol)
+            cellState ? describePhoneme(symbol) + ", " + stateLabel(cellState) : describePhoneme(symbol)
           );
+          cell.title = hintFor(symbol);
           if (cellState) {
             var icon = document.createElement("span");
             icon.className = "icon";
@@ -125,7 +135,7 @@ export function wordleTemplate(config) {
           }
           var labelSpan = document.createElement("span");
           labelSpan.className = "label";
-          labelSpan.textContent = p.label;
+          labelSpan.textContent = p.symbol;
           cell.appendChild(labelSpan);
         } else {
           cell.setAttribute("aria-label", "empty");
@@ -145,17 +155,28 @@ export function wordleTemplate(config) {
       guessWordEl.appendChild(empty);
       return;
     }
+    var transcription = document.createElement("div");
+    transcription.className = "transcription";
+    transcription.setAttribute(
+      "aria-label",
+      "Current phoneme guess " + formatPhonemeWord(state.currentGuess)
+    );
+    var openingSlash = document.createElement("span");
+    openingSlash.className = "slash";
+    openingSlash.setAttribute("aria-hidden", "true");
+    openingSlash.textContent = "/";
+    transcription.appendChild(openingSlash);
     var ul = document.createElement("ul");
     ul.className = "chips";
-    ul.setAttribute("aria-label", "Current guess");
     state.currentGuess.forEach(function (symbol, index) {
       var p = bySymbol(symbol);
       var li = document.createElement("li");
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "chip";
-      btn.textContent = p.label;
-      btn.setAttribute("aria-label", "Remove " + p.label + " (" + hintFor(symbol) + ")");
+      btn.textContent = p.symbol;
+      btn.title = hintFor(symbol);
+      btn.setAttribute("aria-label", "Remove " + describePhoneme(symbol));
       btn.addEventListener("click", function () {
         state.currentGuess.splice(index, 1);
         update();
@@ -163,7 +184,13 @@ export function wordleTemplate(config) {
       li.appendChild(btn);
       ul.appendChild(li);
     });
-    guessWordEl.appendChild(ul);
+    transcription.appendChild(ul);
+    var closingSlash = document.createElement("span");
+    closingSlash.className = "slash";
+    closingSlash.setAttribute("aria-hidden", "true");
+    closingSlash.textContent = "/";
+    transcription.appendChild(closingSlash);
+    guessWordEl.appendChild(transcription);
   }
 
   function renderKeyboard() {
@@ -184,7 +211,8 @@ export function wordleTemplate(config) {
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "kb-button";
-        btn.textContent = p.label;
+        btn.textContent = formatPhoneme(symbol);
+        btn.setAttribute("aria-label", "Phoneme " + formatPhoneme(symbol));
         if (CONFIG.showHints) {
           var hintId = "hint-" + encodeURIComponent(symbol);
           btn.setAttribute("aria-describedby", hintId);
@@ -220,12 +248,18 @@ export function wordleTemplate(config) {
       result.className = "result";
       var p1 = document.createElement("p");
       p1.textContent = won ? "Solved!" : "Out of guesses.";
+      var phonemeResult = document.createElement("p");
+      phonemeResult.textContent = "Phoneme word: ";
+      var phonemeStrong = document.createElement("strong");
+      phonemeStrong.textContent = formatPhonemeWord(CONFIG.answer);
+      phonemeResult.appendChild(phonemeStrong);
       var p2 = document.createElement("p");
       p2.textContent = "English word: ";
       var strong = document.createElement("strong");
       strong.textContent = CONFIG.englishWord || "(not set)";
       p2.appendChild(strong);
       result.appendChild(p1);
+      result.appendChild(phonemeResult);
       result.appendChild(p2);
       statusEl.appendChild(result);
       resetBtn.hidden = false;

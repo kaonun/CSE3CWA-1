@@ -1,4 +1,3 @@
-import { bySymbol } from "@/data/phonemes";
 import WordleTile from "./WordleTile";
 import styles from "./WordleRow.module.css";
 
@@ -9,7 +8,6 @@ export default function WordleRow({ guess, scores }) {
         <WordleTile
           key={index}
           symbol={symbol}
-          label={symbol ? bySymbol(symbol).label : ""}
           state={scores ? scores[index] : undefined}
         />
       ))}

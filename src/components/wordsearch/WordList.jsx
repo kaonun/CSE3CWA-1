@@ -2,7 +2,7 @@
 
 import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
 import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
-import { bySymbol } from "@/data/phonemes";
+import { formatPhonemeWord, hintFor } from "@/data/phonemes";
 import styles from "./WordList.module.css";
 
 export default function WordList({
@@ -21,19 +21,23 @@ export default function WordList({
         {words.map((word, index) => (
           <li key={index} className={styles.wordRow}>
             <span className={styles.wordChips}>
+              <span className={styles.slash} aria-hidden="true">
+                /
+              </span>
               {word.map((symbol, i) => (
-                <span key={i} className={styles.chip}>
-                  {bySymbol(symbol).label}
+                <span key={i} className={styles.chip} title={hintFor(symbol)}>
+                  {symbol}
                 </span>
               ))}
+              <span className={styles.slash} aria-hidden="true">
+                /
+              </span>
             </span>
             <button
               type="button"
               className={styles.removeButton}
               onClick={() => onRemoveWord(index)}
-              aria-label={`Remove word ${word
-                .map((s) => bySymbol(s).label)
-                .join(" ")}`}
+              aria-label={`Remove phoneme word ${formatPhonemeWord(word)}`}
             >
               Remove
             </button>

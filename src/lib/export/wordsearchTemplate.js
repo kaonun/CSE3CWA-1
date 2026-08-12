@@ -30,7 +30,16 @@ export function wordsearchTemplate(config) {
   }
   function hintFor(sym) {
     var p = bySymbol(sym);
-    return p.label + " as in " + p.example;
+    return p.label + " (as in " + p.example + ")";
+  }
+  function formatPhoneme(sym) {
+    return "/" + sym + "/";
+  }
+  function formatPhonemeWord(word) {
+    return "/" + word.join(" ") + "/";
+  }
+  function describePhoneme(sym) {
+    return "Phoneme " + formatPhoneme(sym) + ": " + hintFor(sym);
   }
 
   var foundIndices = [];
@@ -78,9 +87,7 @@ export function wordsearchTemplate(config) {
     CONFIG.placements.forEach(function (p, index) {
       var li = document.createElement("li");
       li.className = "ws-word" + (foundIndices.indexOf(index) !== -1 ? " found" : "");
-      li.textContent = p.word
-        .map(function (s) { return bySymbol(s).label; })
-        .join(" ");
+      li.textContent = formatPhonemeWord(p.word);
       ul.appendChild(li);
     });
     wordlistEl.appendChild(ul);
@@ -109,8 +116,9 @@ export function wordsearchTemplate(config) {
         var isFound = !!foundSet[r + "," + c];
         if (isFound) className += " found";
         btn.className = className;
-        btn.textContent = p.label;
-        btn.setAttribute("aria-label", hintFor(symbol));
+        btn.textContent = p.symbol;
+        btn.title = hintFor(symbol);
+        btn.setAttribute("aria-label", describePhoneme(symbol));
         btn.setAttribute("aria-pressed", isFound ? "true" : "false");
         btn.addEventListener("click", function () {
           handleCellClick(r, c);

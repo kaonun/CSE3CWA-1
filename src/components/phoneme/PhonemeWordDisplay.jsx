@@ -1,6 +1,10 @@
 "use client";
 
-import { bySymbol, hintFor } from "@/data/phonemes";
+import {
+  describePhoneme,
+  formatPhonemeWord,
+  hintFor,
+} from "@/data/phonemes";
 import styles from "./PhonemeWordDisplay.module.css";
 
 export default function PhonemeWordDisplay({
@@ -14,23 +18,32 @@ export default function PhonemeWordDisplay({
       {word.length === 0 ? (
         <p className={styles.empty}>Click phonemes below to build a word</p>
       ) : (
-        <ul className={styles.chips} aria-label="Phoneme word">
-          {word.map((symbol, index) => {
-            const phoneme = bySymbol(symbol);
-            return (
+        <div className={styles.transcription}>
+          <span className={styles.slash} aria-hidden="true">
+            /
+          </span>
+          <ul
+            className={styles.chips}
+            aria-label={`Phoneme word ${formatPhonemeWord(word)}`}
+          >
+            {word.map((symbol, index) => (
               <li key={`${symbol}-${index}`}>
                 <button
                   type="button"
                   className={styles.chip}
                   onClick={() => onRemoveAt(index)}
-                  aria-label={`Remove ${phoneme.label} (${hintFor(symbol)})`}
+                  aria-label={`Remove ${describePhoneme(symbol)}`}
+                  title={hintFor(symbol)}
                 >
-                  {phoneme.label}
+                  {symbol}
                 </button>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+          <span className={styles.slash} aria-hidden="true">
+            /
+          </span>
+        </div>
       )}
       <div className={styles.actions}>
         <button

@@ -7,8 +7,8 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)**.
 ## Features
 
 - Australian English inventory of 24 consonants and 19 vowels.
-- Phonemes are selected from an on-screen keyboard, so users never need to type IPA.
-- Hover and keyboard-focus hints such as “TH as in thin” and “TH as in this”.
+- Phonemes are selected as visible IPA symbols from an on-screen keyboard, so users never need to type IPA.
+- Hover and keyboard-focus hints such as "TH (as in thin)" and "TH (as in this)".
 - Playable Wordle preview with duplicate-aware two-pass scoring.
 - Word Search generation with configurable size and easy/hard placement rules.
 - One-click export to self-contained, offline `.html` activities.

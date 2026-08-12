@@ -4,6 +4,7 @@ import { useState } from "react";
 import WordleGrid from "./WordleGrid";
 import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
 import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
+import { formatPhonemeWord } from "@/data/phonemes";
 import { scoreGuess, isWin } from "@/lib/wordle/scoring";
 import styles from "./WordlePreview.module.css";
 
@@ -67,6 +68,9 @@ export default function WordlePreview({
         {gameOver ? (
           <div className={styles.result}>
             <p>{won ? "Solved!" : "Out of guesses."}</p>
+            <p>
+              Phoneme word: <strong>{formatPhonemeWord(answer)}</strong>
+            </p>
             <p>
               English word: <strong>{englishWord || "(not set)"}</strong>
             </p>

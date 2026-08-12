@@ -1,4 +1,4 @@
-import { KEYBOARD_ROWS, bySymbol } from "@/data/phonemes";
+import { KEYBOARD_ROWS } from "@/data/phonemes";
 import PhonemeButton from "./PhonemeButton";
 import styles from "./PhonemeKeyboard.module.css";
 
@@ -13,18 +13,14 @@ export default function PhonemeKeyboard({ onSelect, showHints = true }) {
         <div className={styles.row} key={row.title}>
           <h3 className={styles.rowTitle}>{row.title}</h3>
           <div className={styles.rowButtons}>
-            {row.symbols.map((symbol) => {
-              const phoneme = bySymbol(symbol);
-              return (
-                <PhonemeButton
-                  key={symbol}
-                  symbol={symbol}
-                  label={phoneme.label}
-                  onClick={onSelect}
-                  showHint={showHints}
-                />
-              );
-            })}
+            {row.symbols.map((symbol) => (
+              <PhonemeButton
+                key={symbol}
+                symbol={symbol}
+                onClick={onSelect}
+                showHint={showHints}
+              />
+            ))}
           </div>
         </div>
       ))}

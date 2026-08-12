@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { bySymbol, hintFor } from "@/data/phonemes";
+import { describePhoneme, hintFor } from "@/data/phonemes";
 import styles from "./WordSearchGrid.module.css";
 
 function placementCells(placement) {
@@ -99,10 +99,11 @@ export default function WordSearchGrid({ grid, placements, failed }) {
                 type="button"
                 className={`${styles.cell} ${isSelected ? styles.selected : ""} ${isFound ? styles.found : ""}`}
                 onClick={() => handleCellClick(r, c)}
-                aria-label={hintFor(symbol)}
+                aria-label={describePhoneme(symbol)}
                 aria-pressed={isFound}
+                title={hintFor(symbol)}
               >
-                {bySymbol(symbol).label}
+                {symbol}
               </button>
             );
           }),

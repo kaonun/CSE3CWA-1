@@ -68,8 +68,15 @@ export const bySymbol = (sym) => PHONEMES.find((p) => p.symbol === sym);
 
 export const hintFor = (sym) => {
   const p = bySymbol(sym);
-  return `${p.label} as in ${p.example}`;
+  return `${p.label} (as in ${p.example})`;
 };
+
+export const formatPhoneme = (sym) => `/${sym}/`;
+
+export const formatPhonemeWord = (word) => `/${word.join(" ")}/`;
+
+export const describePhoneme = (sym) =>
+  `Phoneme ${formatPhoneme(sym)}: ${hintFor(sym)}`;
 
 // Rows grouped by manner of articulation / vowel length, for rendering the
 // keyboard as a phonetic chart rather than a flat keypad.
