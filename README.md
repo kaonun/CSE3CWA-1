@@ -6,10 +6,11 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** a
 
 ## Assessment 2 progress
 
-The inherited Next.js foundation has been inspected and verified. The app currently retains the Assessment 1 functionality; backend APIs, database persistence, and Docker support will be added in separate verified increments.
+The inherited Next.js foundation is verified. Step 2 adds server-side activity generation, an API used by both builders, and `/health`. Database persistence, CRUD, and Docker support remain later assessment steps.
 
 - [Assessment 2 specification](Assignment2Specs.md)
 - [Baseline inspection, verification, and increment plan](docs/assessment-2-baseline.md)
+- [Step 2 backend architecture, API contract, and verification](docs/backend.md)
 
 The original scaffold commit, `02f544d`, records creation with `create-next-app`. Assessment 2 continues that application and its Git history; running the starter again is unnecessary.
 
@@ -34,7 +35,7 @@ The original scaffold commit, `02f544d`, records creation with `create-next-app`
 - ESLint
 - npm
 
-There is no backend, database, Tailwind CSS, external font, or runtime API dependency.
+Next.js Route Handlers provide the backend in the same application. The builders require the running server; downloaded student activities remain self-contained. There is currently no database or additional runtime dependency beyond Next.js and React.
 
 ## Getting started
 
@@ -60,6 +61,7 @@ The development server uses hot reload, so saved changes appear automatically.
 ```bash
 npm run lint
 npm run build
+npm run test:backend
 ```
 
 To run the production build locally:
@@ -100,6 +102,8 @@ The exact grid shown in the preview is embedded in the exported file, so student
 | `/wordsearch` | Word Search builder, preview, and export |
 | `/about` | Project scope, tool descriptions, author details, and walkthrough video |
 | `/settings` | Cookie-persisted light/dark theme control |
+| `/health` | Application liveness, returning JSON and `200 OK` |
+| `/api/activities/generate` | POST validated Wordle/Word Search settings for server-generated activity output |
 
 ## Project structure
 
@@ -109,6 +113,8 @@ src/
 ├── components/          # Layout, builder, phoneme, Wordle, and Word Search UI
 ├── data/phonemes.js     # Single source of truth for the phoneme inventory
 └── lib/
+    ├── api/             # Browser API client
+    ├── server/          # Server-only request handling and activity service
     ├── export/          # Standalone HTML document, styles, and activity templates
     ├── wordle/          # Two-pass Wordle scoring
     ├── wordsearch/      # Grid generation and placement
@@ -135,6 +141,6 @@ src/
 
 ## Assessment scope
 
-The verified baseline is the Assessment 1 frontend. The phoneme inventory and starter Word Search list are local data; there is currently no database, account system, or dynamic word-list service. The About page still describes Assessment 1 and includes its walkthrough video. These descriptions will be updated as Assessment 2 functionality is implemented.
+Step 2's backend supports the inherited frontend. Both builders use the activity-generation API; Word Search previews and exports share the same server-generated puzzle. Teacher content is not yet persisted and is lost on refresh. The phoneme inventory and starter list remain local reference/default data until database integration. The About page identifies the existing walkthrough as the Assessment 1 video.
 
 Current development: [master](https://github.com/kaonun/CSE3CWA-1/tree/master). Original submission: [assessment-1](https://github.com/kaonun/CSE3CWA-1/tree/assessment-1).

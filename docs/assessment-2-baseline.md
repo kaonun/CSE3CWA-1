@@ -112,7 +112,7 @@ the table below supersedes that numbering to match the user's terminology.
 | Assessment step | Scope and status | Verification before commit and push |
 | --- | --- | --- |
 | 1 — Next.js foundation | Starter provenance verified. Requirement 1.2 spans later backend/database/API work and is not fully complete yet. | Locked install, lint, build, and existing production routes passed. |
-| 2 — backend supporting the frontend | In progress: server activity processing and real API communication from both builders. | Exercise both activity routes, frontend success/error/loading behavior, and `/health`. |
+| 2 — backend supporting the frontend | Implemented: server activity processing and real API communication from both builders. See `backend.md`. | Lint, production build, HTTP checks, and browser verification; results recorded with the Step 2 commit. |
 | 3 — Docker | Pending: containerize the application using the relevant lab structure. | Build/run image and check application routes; revisit database persistence after Step 4. |
 | 4 — database schema | Pending: schema, ORM, migrations, words, ordered phonemes, and multiple activity configurations. | Migrate an empty database; verify multi-character token round trips and restart persistence. |
 | 5 — CRUD | Pending: create/read/update/delete saved words, lists, and configurations. | API and UI CRUD, missing records, and relationship constraints. |

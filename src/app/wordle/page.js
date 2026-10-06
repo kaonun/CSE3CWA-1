@@ -9,7 +9,7 @@ import NumberInput from "@/components/ui/NumberInput";
 import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
 import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
 import WordlePreview from "@/components/wordle/WordlePreview";
-import { buildHtml } from "@/lib/export/buildHtml";
+import { requestActivity } from "@/lib/api/activities";
 import { downloadHtml } from "@/lib/export/download";
 import { getActiveTheme } from "@/lib/theme";
 import styles from "./page.module.css";
@@ -22,6 +22,8 @@ export default function WordlePage() {
   const [englishWord, setEnglishWord] = useState("");
   const [showHints, setShowHints] = useState(true);
   const [guesses, setGuesses] = useState(6);
+  const [generating, setGenerating] = useState(false);
+  const [generationMessage, setGenerationMessage] = useState("");
 
   const handleSelectPhoneme = (symbol) =>
     setPhonemeWord((word) => [...word, symbol]);
@@ -38,18 +40,28 @@ export default function WordlePage() {
     setGuesses(Math.min(MAX_GUESSES, Math.max(MIN_GUESSES, value)));
   };
 
-  const handleGenerate = () => {
-    const html = buildHtml({
-      type: "wordle",
-      theme: getActiveTheme(),
-      config: {
-        answer: phonemeWord,
-        englishWord,
-        maxGuesses: guesses,
-        showHints,
-      },
-    });
-    downloadHtml("phonemele-wordle.html", html);
+  const handleGenerate = async () => {
+    if (generating) return;
+    setGenerating(true);
+    setGenerationMessage("Preparing your activity…");
+    try {
+      const activity = await requestActivity({
+        type: "wordle",
+        theme: getActiveTheme(),
+        config: {
+          answer: phonemeWord,
+          englishWord,
+          maxGuesses: guesses,
+          showHints,
+        },
+      });
+      downloadHtml(activity.filename, activity.html);
+      setGenerationMessage("Your activity is ready. Download started.");
+    } catch (error) {
+      setGenerationMessage(error.message);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const controls = (
@@ -74,6 +86,7 @@ export default function WordlePage() {
           type="text"
           className={styles.textInput}
           value={englishWord}
+          maxLength={120}
           onChange={(event) => setEnglishWord(event.target.value)}
         />
       </SettingsField>
@@ -97,14 +110,15 @@ export default function WordlePage() {
       <div className={styles.generateAction}>
         <GenerateButton
           onClick={handleGenerate}
-          disabled={phonemeWord.length === 0}
+          disabled={phonemeWord.length === 0 || generating}
           prominent
         >
-          Generate Wordle activity
+          {generating ? "Preparing activity…" : "Generate Wordle activity"}
         </GenerateButton>
         <p className={styles.generateHint}>
           Downloads a standalone HTML activity using your current theme.
         </p>
+        <p role="status" aria-live="polite">{generationMessage}</p>
       </div>
     </div>
   );

@@ -134,11 +134,6 @@ export function wordsearchTemplate(config) {
       renderGrid();
       return;
     }
-    if (selectionStart.row === row && selectionStart.col === col) {
-      selectionStart = null;
-      renderGrid();
-      return;
-    }
     var end = { row: row, col: col };
     var matchIndex = -1;
     for (var i = 0; i < CONFIG.placements.length; i++) {

@@ -52,10 +52,6 @@ export default function WordSearchGrid({ grid, placements, failed }) {
       setSelectionStart({ row, col });
       return;
     }
-    if (selectionStart.row === row && selectionStart.col === col) {
-      setSelectionStart(null);
-      return;
-    }
     const end = { row, col };
     const matchIndex = placements.findIndex(
       (placement, index) =>

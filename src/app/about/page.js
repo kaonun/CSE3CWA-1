@@ -25,10 +25,10 @@ export default function AboutPage() {
       <section>
         <h2>Scope</h2>
         <p>
-          This is Assessment 1 of CSE3CWA: a frontend-only application.
-          There is no database and no dynamic word lists — the phoneme
-          inventory is fixed, and the Word Search word list ships with
-          editable defaults. Dynamic content is planned for Assessment 2.
+          The builder now uses a server to prepare classroom activities.
+          Downloaded HTML games still work offline. Word lists and settings
+          are not yet saved: keep your downloaded activities before leaving
+          or refreshing the builder.
         </p>
       </section>
 
@@ -55,7 +55,8 @@ export default function AboutPage() {
       </section>
 
       <section className={styles.video}>
-        <h2>How it works</h2>
+        <h2>Assessment 1 walkthrough</h2>
+        <p>This video demonstrates the original interface, before server-side generation was added.</p>
         <div className={styles.videoFrame}>
           <iframe
             src={VIDEO_URL}

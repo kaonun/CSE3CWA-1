@@ -1,25 +1,19 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import BuilderLayout from "@/components/builder/BuilderLayout";
 import SettingsField from "@/components/builder/SettingsField";
 import GenerateButton from "@/components/builder/GenerateButton";
 import NumberInput from "@/components/ui/NumberInput";
 import WordList from "@/components/wordsearch/WordList";
 import WordSearchGrid from "@/components/wordsearch/WordSearchGrid";
-import { generateWordSearch } from "@/lib/wordsearch/generate";
-import { buildHtml } from "@/lib/export/buildHtml";
+import { requestActivity } from "@/lib/api/activities";
 import { downloadHtml } from "@/lib/export/download";
 import { getActiveTheme } from "@/lib/theme";
 import styles from "./page.module.css";
 
 const MIN_SIZE = 6;
 const MAX_SIZE = 15;
-const EMPTY_RESULT = { grid: [], placements: [], failed: [] };
-
-const subscribeToHydration = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
 
 const DEFAULT_WORDS = [
   ["k", "æ", "t"], // cat
@@ -34,6 +28,35 @@ export default function WordSearchPage() {
   const [builderWord, setBuilderWord] = useState([]);
   const [size, setSize] = useState(10);
   const [difficulty, setDifficulty] = useState("easy");
+  const [response, setResponse] = useState(null);
+  const [retry, setRetry] = useState(0);
+  const requestKey = JSON.stringify({ words, size, difficulty, retry });
+  const currentResponse = response?.key === requestKey ? response : null;
+  const loading = words.length > 0 && !currentResponse;
+  const activity = currentResponse?.activity;
+
+  useEffect(() => {
+    const { words, size, difficulty } = JSON.parse(requestKey);
+    if (words.length === 0) return;
+    const controller = new AbortController();
+    // Coalesce quick changes and discard responses for superseded settings.
+    const timer = setTimeout(async () => {
+      try {
+        const activity = await requestActivity({
+          type: "wordsearch",
+          theme: getActiveTheme(),
+          config: { words, size, difficulty },
+        }, controller.signal);
+        if (!controller.signal.aborted) setResponse({ key: requestKey, activity });
+      } catch (error) {
+        if (!controller.signal.aborted) setResponse({ key: requestKey, error: error.message });
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [requestKey]);
 
   const handleSelectPhoneme = (symbol) =>
     setBuilderWord((word) => [...word, symbol]);
@@ -59,35 +82,8 @@ export default function WordSearchPage() {
     setSize(Math.min(MAX_SIZE, Math.max(MIN_SIZE, value)));
   };
 
-  // Grid generation uses Math.random(), so it must not run during server
-  // rendering: the server and browser would produce different grids. This
-  // hydration snapshot keeps the first render empty on both sides, then
-  // computes the puzzle once the client is ready.
-  const isHydrated = useSyncExternalStore(
-    subscribeToHydration,
-    getClientSnapshot,
-    getServerSnapshot,
-  );
-
-  const result = useMemo(() => {
-    if (!isHydrated) return EMPTY_RESULT;
-
-    return generateWordSearch(words, size, {
-      diagonals: difficulty === "hard",
-      reversals: difficulty === "hard",
-    });
-  }, [isHydrated, words, size, difficulty]);
-
   const handleGenerate = () => {
-    const html = buildHtml({
-      type: "wordsearch",
-      theme: getActiveTheme(),
-      config: {
-        grid: result.grid,
-        placements: result.placements,
-      },
-    });
-    downloadHtml("phonemele-wordsearch.html", html);
+    if (activity && words.length > 0) downloadHtml(activity.filename, activity.html);
   };
 
   const controls = (
@@ -96,7 +92,7 @@ export default function WordSearchPage() {
         <h2>Word Search builder</h2>
         <GenerateButton
           onClick={handleGenerate}
-          disabled={words.length === 0 || result.grid.length === 0}
+          disabled={words.length === 0 || !activity}
         />
       </div>
 
@@ -136,11 +132,21 @@ export default function WordSearchPage() {
     </div>
   );
 
-  const preview = (
+  const preview = words.length === 0 ? (
+    <p role="status">Add words to generate a grid.</p>
+  ) : currentResponse?.error ? (
+    <div>
+      <p role="alert">{currentResponse.error}</p>
+      <button type="button" onClick={() => setRetry((value) => value + 1)}>Try again</button>
+    </div>
+  ) : loading ? (
+    <p role="status">Preparing your word search…</p>
+  ) : (
     <WordSearchGrid
-      grid={result.grid}
-      placements={result.placements}
-      failed={result.failed}
+      key={`${requestKey}:${JSON.stringify(activity.preview)}`}
+      grid={activity.preview.grid}
+      placements={activity.preview.placements}
+      failed={activity.preview.failed}
     />
   );
 
