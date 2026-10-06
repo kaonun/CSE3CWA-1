@@ -1,5 +1,13 @@
 # CSE3CWA Assessment 1 — Technical Specification
 
+> Assessment 2 context: this branch continues the existing app. Read
+> `Assignment2Specs.md` and `docs/assessment-2-baseline.md` for the current scope
+> and progress. The specification below describes the Assessment 1 baseline;
+> its frontend-only scope, fixed-word-list restriction, and zero-additional-runtime-
+> dependency decision do not restrict the backend/database work required for
+> Assessment 2. Retain the phoneme-token representation, reusable components,
+> accessibility, and standalone HTML export requirements as the app grows.
+
 **Project:** Phoneme'le — a builder for phoneme-based classroom activities
 **Audience:** Speech Pathology teachers preparing activities for students
 **Scope:** Frontend only. No database, no dynamic word lists (Assessment 2).

@@ -1,8 +1,17 @@
 # Phoneme'le
 
-Phoneme'le is a frontend-only activity builder for Speech Pathology teachers. It uses an Australian English phoneme keyboard to create playable Wordle and Word Search activities, preview them in the browser, and export them as single offline HTML files for students.
+Phoneme'le is an activity builder for Speech Pathology teachers. It uses an Australian English phoneme keyboard to create playable Wordle and Word Search activities, preview them in the browser, and export them as single offline HTML files for students.
 
-This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)**.
+This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** and continues into Assessment 2 on the `assessment-2` branch. The `master` branch retains the Assessment 1 submission.
+
+## Assessment 2 progress
+
+The inherited Next.js foundation has been inspected and verified. The app currently retains the Assessment 1 functionality; backend APIs, database persistence, and Docker support will be added in separate verified increments.
+
+- [Assessment 2 specification](Assignment2Specs.md)
+- [Baseline inspection, verification, and increment plan](docs/assessment-2-baseline.md)
+
+The original scaffold commit, `02f544d`, records creation with `create-next-app`. Assessment 2 continues that application and its Git history; running the starter again is unnecessary.
 
 ## Features
 
@@ -38,7 +47,7 @@ There is no backend, database, Tailwind CSS, external font, or runtime API depen
 ### Run locally
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -126,6 +135,6 @@ src/
 
 ## Assessment scope
 
-This is CSE3CWA Assessment 1 and is intentionally frontend-only. The phoneme inventory and starter Word Search list are fixed local data; there is no database, account system, or dynamic word-list service. The About page includes an embedded unlisted walkthrough video.
+The verified baseline is the Assessment 1 frontend. The phoneme inventory and starter Word Search list are local data; there is currently no database, account system, or dynamic word-list service. The About page still describes Assessment 1 and includes its walkthrough video. These descriptions will be updated as Assessment 2 functionality is implemented.
 
-Repository: [github.com/kaonun/CSE3CWA-1](https://github.com/kaonun/CSE3CWA-1)
+Assessment 2 branch: [github.com/kaonun/CSE3CWA-1/tree/assessment-2](https://github.com/kaonun/CSE3CWA-1/tree/assessment-2)
