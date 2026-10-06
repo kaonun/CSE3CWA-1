@@ -17,9 +17,12 @@ The existing repository already satisfies that foundation:
 - The Assessment 1 technical specification records `npx create-next-app .`.
 
 Assessment 2 continues from `2c68514a4c5f7ac507d63fdee23f6891e27e0404`, the final
-Assessment 1 commit. The `assessment-2` branch retains that full history and has
-its own working copy in the `Assignment 2` folder. The `Assignment 1` working
-copy and remote `master` branch remain the submitted baseline.
+Assessment 1 commit. The baseline was initially prepared on `assessment-2` in
+the `Assignment 2` folder. Following the user's branch-organization decision,
+current development now runs on `master` in that folder. `assessment-1` preserves
+the original submission at `2c68514`, and the `Assignment 1` working copy uses
+that preservation branch. The earlier `assessment-2` branch marks the baseline
+checkpoint; it is not the active development branch.
 
 There is no need to rerun the starter. Instruction 1's requirement to extend the
 app with backend, database, and API functionality remains work for later
@@ -99,22 +102,25 @@ This baseline check does not claim database persistence, working activity APIs,
 `/health`, Docker support, or a fresh interactive/offline-export regression pass.
 Those checks belong to the increments that introduce or integrate that behavior.
 
-## Planned increments
+## Assessment steps and progress
 
-The instruction numbers are requirements, rather than a strict implementation
-order. Database structure needs to be settled before reliable activity CRUD can
-be implemented. Validation should accompany each write path from its first use.
+A step means a top-level numbered instruction, including all of its nested
+requirements. Smaller commits are development increments, not additional
+assessment steps. The earlier baseline plan used different increment numbers;
+the table below supersedes that numbering to match the user's terminology.
 
-| Increment | Scope | Verification before commit and push |
+| Assessment step | Scope and status | Verification before commit and push |
 | --- | --- | --- |
-| 1 — baseline | Confirm starter provenance, inspect Assessment 1, prepare the continuation branch | Install locked dependencies, lint, build, and smoke-check the existing production routes. |
-| 2 — backend design and entry point | Document the data model/API contract based on this inspection; introduce the required `/health` route | Review coverage of word lists, phoneme order, activity settings, and output metadata; verify `/health` returns `200 OK`. |
-| 3 — database foundation | Choose and configure the database/ORM, add schema and migrations, establish persistence | Create a database from migrations and prove ordered multi-character tokens survive a round trip and restart. |
-| 4 — validated CRUD | Implement word/list/configuration APIs with validation and consistent errors | Exercise create, read, update, delete, invalid input, missing records, and relevant relationship constraints. |
-| 5 — builder integration | Connect both builders to saved content and configurations | Save, reload, edit, and delete through the UI; check error states and preview resets. |
-| 6 — saved-data outputs | Generate both downloadable activity types using retrieved data | Verify saved settings and words in both outputs, matching preview content, and offline play. |
-| 7 — Docker | Add reproducible container startup and persistent database storage, aligned with the relevant lab | Build and run the container, check `/health`, and prove data survives container recreation. |
-| 8 — submission preparation | Update documentation, prepare demonstration checklist and submission archive | Check brief coverage, repository link, video requirements, and exclusion of `node_modules`, secrets, and build output. |
+| 1 — Next.js foundation | Starter provenance verified. Requirement 1.2 spans later backend/database/API work and is not fully complete yet. | Locked install, lint, build, and existing production routes passed. |
+| 2 — backend supporting the frontend | In progress: server activity processing and real API communication from both builders. | Exercise both activity routes, frontend success/error/loading behavior, and `/health`. |
+| 3 — Docker | Pending: containerize the application using the relevant lab structure. | Build/run image and check application routes; revisit database persistence after Step 4. |
+| 4 — database schema | Pending: schema, ORM, migrations, words, ordered phonemes, and multiple activity configurations. | Migrate an empty database; verify multi-character token round trips and restart persistence. |
+| 5 — CRUD | Pending: create/read/update/delete saved words, lists, and configurations. | API and UI CRUD, missing records, and relationship constraints. |
+| 6 — generation from stored data | Pending: generate both outputs from database-backed content. | Saved words/settings, preview consistency, and offline exported games. |
+| 7 — validation and errors | Apply relevant validation as endpoints are added; final audit pending. | Invalid/missing/malformed data, clear messages, and consistent error responses. |
+| 8 — video | Pending, including `/health`, Docker, CRUD, student ID, face, and narration. | Walkthrough checklist covering every nested requirement. |
+| 9 — submission | Pending: ZIP and repository link without `node_modules`. | Inspect archive contents and verify reproducible setup. |
+| 10 — technical expectations | Ongoing: modularity, readability, and later testing/deployment support. | Review each change and run appropriate checks. |
 
 Each increment ends with its own verification, focused commit, push, and report.
 Database provider and relationship design are not selected in this baseline

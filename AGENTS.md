@@ -10,12 +10,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Assessment 2 development
 
-- Continue the Assessment 1 application on the `assessment-2` branch. The current
+- Continue development on `master`. The current
   requirements are in `Assignment2Specs.md`; the initial inspection and increment
   plan are in `docs/assessment-2-baseline.md`.
-- Work in small increments. Verify each completed increment, then commit and push
-  its relevant changes. Report the result before starting the next increment.
-- Keep `master` as the Assessment 1 submission. Preserve phonemes as ordered
+- A step means a top-level numbered instruction in the assessment brief, including
+  all its nested requirements. Complete and verify that scope before reporting it
+  complete. Use focused commits within a step where useful; push completed work.
+- Keep `assessment-1` at the original submission commit `2c68514`. Future completed
+  assessments can have their own preservation branches; `master` stays current.
+  Preserve phonemes as ordered
   symbol tokens, including symbols containing multiple characters.
 - `CLAUDE.md` contains the historical Assessment 1 design. Its frontend-only
   restrictions are superseded by the Assessment 2 specification.

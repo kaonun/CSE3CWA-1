@@ -2,7 +2,7 @@
 
 Phoneme'le is an activity builder for Speech Pathology teachers. It uses an Australian English phoneme keyboard to create playable Wordle and Word Search activities, preview them in the browser, and export them as single offline HTML files for students.
 
-This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** and continues into Assessment 2 on the `assessment-2` branch. The `master` branch retains the Assessment 1 submission.
+This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** and continues into Assessment 2 on `master`. The `assessment-1` branch preserves the complete original submission at `2c68514`. Future assessments will continue on `master`, with completed submissions preserved on assessment branches.
 
 ## Assessment 2 progress
 
@@ -137,4 +137,4 @@ src/
 
 The verified baseline is the Assessment 1 frontend. The phoneme inventory and starter Word Search list are local data; there is currently no database, account system, or dynamic word-list service. The About page still describes Assessment 1 and includes its walkthrough video. These descriptions will be updated as Assessment 2 functionality is implemented.
 
-Assessment 2 branch: [github.com/kaonun/CSE3CWA-1/tree/assessment-2](https://github.com/kaonun/CSE3CWA-1/tree/assessment-2)
+Current development: [master](https://github.com/kaonun/CSE3CWA-1/tree/master). Original submission: [assessment-1](https://github.com/kaonun/CSE3CWA-1/tree/assessment-1).
