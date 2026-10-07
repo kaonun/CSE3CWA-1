@@ -39,8 +39,11 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude code local settings
-.claude/settings.local.json
+# Local agent metadata (Next.js may regenerate the Markdown files during dev).
+/.claude/
+/AGENTS.md
+/CLAUDE.md
+/Assignment2Specs.md
 
 # typescript
 *.tsbuildinfo

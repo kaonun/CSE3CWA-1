@@ -1,140 +1,136 @@
-# Step 2: backend supporting the builders
+# Backend architecture and API
 
-This records the Step 2 increment. Step 4 has since added the storage foundation
-and `/health/database`; see `database.md`. The generation route still uses editor
-values until saved-data generation is connected in Step 6.
+Next.js App Router provides pages and backend routes in one application.
+Client components manage forms and game state; server-only services validate
+requests, access SQLite through Drizzle, and generate offline HTML.
 
-The backend runs inside the existing Next.js application using App Router Route
-Handlers. There is no separate Express service or additional runtime dependency.
-This step implements all of instruction 2's nested requirements:
+## Boundaries
 
-| Requirement | Implementation |
+- `src/lib/api/`: browser fetch clients, 15-second timeouts, cancellation and
+  readable failures. Writes are never automatically retried.
+- `src/app/api/`: thin Node Route Handlers; dynamic record parameters are awaited.
+- `src/lib/server/storage.js`: transactional CRUD and relationship guards.
+- `storage-validation.js` and `http.js`: field allowlists, types, bounds and
+  strict UTF-8 JSON, limited to 32 KiB including chunked bodies.
+- `src/lib/phonemes/validation.mjs`: shared complete-token inventory validation.
+- `src/lib/db/`: schema, connection and readers; ordered tokens must be present,
+  supported and contiguous before being returned to the UI.
+- `saved-activities.js`: reads one configuration/list snapshot, then calls the
+  shared activity generator outside the database connection lock.
+- `src/lib/export/`: escaped titles, safely serialized script data and standalone
+  HTML/CSS/JavaScript. Downloaded games have no API dependencies.
+
+All application database work is queued through `withDatabase`; the single local
+libSQL connection cannot be borrowed while another transaction owns it.
+Read/update operations use transactions. Word metadata/token rows are replaced
+atomically, IDs remain stable, and parent list timestamps reflect word changes.
+
+## Saved-content API
+
+Handled responses are uncached (`Cache-Control: no-store`). JSON writes require
+`Content-Type: application/json`. Create returns 201, read/update 200 and
+delete 204 with no body.
+
+| Endpoint | Methods |
 | --- | --- |
-| 2.1 Server-side activity logic | `src/lib/server/activities.js` validates activity settings, generates Word Search puzzles, and composes both HTML activity types. |
-| 2.2 Frontend/backend communication | Both builder pages use `src/lib/api/activities.js` to call `POST /api/activities/generate`. |
-| 2.3 Wordle and Word Search use case | The existing phoneme keyboard, game previews, settings, themes, and standalone student HTML outputs remain supported. |
+| `/api/word-lists` | GET, POST |
+| `/api/word-lists/:id` | GET, PATCH, DELETE |
+| `/api/word-lists/:id/words` | GET, POST |
+| `/api/words/:id` | GET, PATCH, DELETE |
+| `/api/configurations` | GET, POST |
+| `/api/configurations/:id` | GET, PATCH, DELETE |
+| `/api/configurations/:id/generate` | POST |
 
-## Request flow
+Single-record responses are `{ "data": record }`. Collection responses are
+`{ "data": [], "total": 0, "limit": 50, "offset": 0 }`; a list's words endpoint
+returns `{ "data": [] }` in stored order. Collection paging uses `limit`
+(default 50, range 1–100) and `offset` (0–1,000,000). Configurations may additionally
+filter by `wordListId` and `type=wordle|wordsearch`. Empty supplied filters are invalid.
 
-The builder sends JSON to the route handler. The handler reads a bounded request,
-then calls the activity service. The service validates the content and uses the
-existing generation/export modules to return JSON containing the downloadable
-HTML. Server modules use `server-only` to prevent imports into client bundles.
+List bodies contain required `title` (up to 120) and optional `description`
+(up to 1000). Word bodies contain required `phonemes` and optional
+`englishWord` (up to 120) and `hint` (up to 300):
 
-Wordle's interactive preview remains local. Selecting Generate sends its answer,
-English equivalent, guess count, hints, and current theme to the backend.
+```json
+{ "phonemes": ["tʃ", "eː"], "englishWord": "chair", "hint": "A seat" }
+```
 
-Word Search calls the backend after word-list, size, or difficulty changes, with
-a short debounce. One response supplies both the preview puzzle and the HTML
-containing that exact puzzle. Generate downloads that returned HTML. Superseded
-requests are aborted and ignored, and new puzzles reset the preview's selected
-and found cells. Empty lists and pending/failed requests disable downloading.
-
-Both builders show service errors. Word Search offers Try again; Wordle's Generate
-button becomes available again. Requests time out after 15 seconds.
-
-## API contract
-
-### `GET /health`
-
-Returns `200 OK` and `{"status":"ok","service":"phonemele"}` with
-`Cache-Control: no-store`. This is application liveness, not database readiness:
-no database exists at this step.
-
-### `POST /api/activities/generate`
-
-Content type: `application/json`. Request body limit: 32 KiB, checked against the
-actual incoming stream rather than trusting a Content-Length header.
-
-Wordle example:
+Example configuration (replace IDs with saved records):
 
 ```json
 {
+  "title": "Chair practice",
+  "wordListId": "saved-list-id",
   "type": "wordle",
-  "theme": "dark",
-  "config": {
-    "answer": ["tʃ", "eː"],
-    "englishWord": "chair",
-    "maxGuesses": 6,
-    "showHints": true
-  }
+  "answerWordId": "saved-word-id",
+  "maxGuesses": 5,
+  "showHints": true,
+  "outputTheme": "dark",
+  "outputFilename": "chair.html"
 }
 ```
 
-Word Search example:
+Word Search uses `gridSize` and `difficulty` instead of answer/guesses.
+Creation defaults hints to true, theme to light and filename to
+`phonemele-<type>.html`. PATCH accepts at least one allowed field. Type/list
+ownership cannot change on an existing configuration.
 
-```json
-{
-  "type": "wordsearch",
-  "theme": "light",
-  "config": {
-    "words": [["tʃ", "eː"], ["dʒ", "æ", "m"]],
-    "size": 10,
-    "difficulty": "easy"
-  }
-}
-```
+## Saved generation
 
-Successful responses are `200 OK` with `{ filename, html }`. Word Search also
-returns `preview: { grid, placements, failed: [] }`. All responses from the
-handler use `Cache-Control: no-store`. No response claims that content was saved.
+POST `{}` to `/api/configurations/:id/generate`. Client overrides are rejected.
+Returns `{ "data": { "configuration": snapshot, "filename": "...", "html": "..." } }`;
+Word Search also includes `preview: { grid, placements, failed: [] }`.
+Stored titles, words, hints, settings, theme and filename drive the output.
+Duplicate word sequences retain independent IDs and metadata.
 
-Validation rules:
+The builders keep the generated snapshot until explicitly reloaded. Download
+uses exactly the same HTML as the preview response. Regenerating a Word Search
+creates a new layout. Generation is read-only and does not persist HTML files.
 
-- Activity type is `wordle` or `wordsearch`; theme is `light` or `dark`.
-- Phoneme words are nonempty arrays of complete inventory tokens, never strings
-  split into characters. Multi-character symbols retain their order.
-- Wordle: 1–15 phonemes, English text up to 120 characters (empty is allowed,
-  matching the existing optional field), 3–8 integer guesses, boolean hints.
-- Word Search: 1–30 words, integer grid size 6–15, `easy` or `hard` difficulty.
-  Each word contains 1–grid-size phonemes.
-- Size/count limits bound server work. Five complete generation attempts are
-  allowed; no partial puzzle is returned if requested words cannot all fit.
-- Unknown request properties are ignored; only validated fields reach exports.
-- Teacher text embedded in scripts retains the existing safe JSON serialization.
+## Temporary generation and health
 
-Errors have the shape `{"error":{"message":"Explanation for the teacher"}}`:
+POST `/api/activities/generate` accepts `{ type, theme, config }`.
+Wordle config uses `answer` tokens, `englishWord`, `maxGuesses`, `showHints`,
+and optional `hint`. Word Search uses token-array `words`, `size` and
+`difficulty`. Returns `{ filename, html }` with a Word Search `preview`.
+It does not save teacher data.
+
+GET `/health` returns 200 and `{ "status": "ok", "service": "phonemele" }`.
+GET `/health/database` returns 200 and
+`{ "status": "ok", "database": "sqlite" }`, or generic 503 when schema/inventory
+readiness fails. This is not a full scan of every teacher word.
+
+## Validation and recovery
+
+Words use 1–15 whole inventory tokens; raw strings, malformed arrays and unknown
+symbols are rejected. Titles must be nonempty. Stored text must be well-formed
+Unicode without null characters. Wordle guesses are integers 3–8; Word Search
+grids are integers 6–15 with easy/hard difficulty. Output names use letters,
+numbers, dots, underscores or hyphens and end in `.html`.
+
+Answers must belong to their list. Words must fit every saved search grid.
+Selected answers and the last word in a saved search list are protected from
+individual deletion. Whole-list deletion intentionally cascades only owned data.
+Search generation tries five complete layouts and never exports partial puzzles.
+
+Handled errors use `{ "error": { "message": "..." } }`:
 
 | Status | Meaning |
 | --- | --- |
-| 400 | Invalid JSON or invalid/missing activity fields |
-| 405 | Unsupported HTTP method (handled by Next.js; its response is not the custom JSON envelope) |
-| 413 | Request body exceeds 32 KiB |
-| 415 | Request content type is not JSON |
-| 422 | A complete Word Search puzzle could not be generated |
-| 500 | Unexpected server error; details are logged server-side, not sent to the client |
+| 400 | Invalid fields, phonemes or JSON |
+| 403 | Cross-site mutation blocked |
+| 404 | Missing/deleted record |
+| 409 | Conflict with saved content or list limit |
+| 413 / 415 | Oversized body / non-JSON media type |
+| 422 | Not all search words could be placed |
+| 503 | Storage unavailable or damaged saved phonemes |
+| 500 | Unexpected temporary-generation failure |
 
-## Persistence boundary and later steps
+Unsupported methods use Next.js's built-in 405 response, not this envelope.
+Unexpected diagnostics stay in server logs. UI alerts retain rejected form
+drafts. After a timeout/broken response, reload to check whether a write succeeded
+before repeating it.
 
-This is a stateless backend. Step 4 will introduce a database schema and ORM;
-Step 5 will add stored-word/list/configuration CRUD. Step 6 will source generation
-data from saved records. The service boundary accepts ordered words and activity
-settings so it can later be called with database-loaded content. No in-memory
-store or temporary fake CRUD implementation has been introduced.
-
-The later schema must distinguish word identity/English text/ordered phonemes,
-list membership, activity type, type-specific settings, hints, and output
-metadata. Concrete relationships, migrations, and provider selection belong to
-Step 4 and will be verified there. Instruction 1.2's database extension and the
-full requirements of Steps 4–7 are not marked complete by this work.
-
-## Verification
-
-Run `npm run lint`, `npm run build`, then `npm run test:backend`.
-The backend verification script starts a temporary production server on loopback,
-tests HTTP behavior, and stops it afterward. It covers liveness, existing pages,
-both activity types, token/settings/theme preservation, safe script embedding,
-preview/export agreement, validation failures, request limits, and incomplete
-puzzles. See `scripts/verify-backend.mjs` for the executable checks.
-
-Browser verification covers Wordle generation and service-unavailable messaging,
-Word Search regeneration after settings changes, loading/disabled controls, and
-preview reset behavior. On 7 October 2026, lint, the production build, and all 26
-HTTP checks passed. Browser checks also confirmed single-phoneme selection,
-invalid-word errors with disabled export, recovery after correcting grid size,
-and found-word counts resetting for a new puzzle. Wordle reached its download
-feedback in the browser; the automated browser download observer timed out, so
-this record does not claim verification of files saved by the browser.
-
-A complete offline-play/export regression remains part
-of Step 6; API-level HTML checks do not replace that assessment requirement.
+Same-origin checks compare Origin with protocol/Host and reject cross-site Fetch
+Metadata. They are not authentication. This local single-app deployment uses
+last-successful-writer-wins editing, not optimistic concurrency or tenant isolation.

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --hostname 127.0.0.1",
     "predev": "npm run db:migrate",
     "build": "next build",
     "start": "node scripts/start-production.mjs",
@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate --config=drizzle.config.mjs",
     "db:migrate": "node scripts/migrate-database.mjs",
     "test:database": "node scripts/verify-database.mjs",
-    "test:client-errors": "node scripts/verify-client-errors.mjs"
+    "test:client-errors": "node scripts/verify-client-errors.mjs",
+    "check": "npm run lint && npm run build && npm run test:client-errors && npm run test:database && npm run test:backend"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",
