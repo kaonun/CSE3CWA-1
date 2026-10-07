@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/start-production.mjs",
     "lint": "eslint",
-    "test:backend": "node scripts/verify-backend.mjs"
+    "test:backend": "node scripts/verify-backend.mjs",
+    "test:docker": "node scripts/verify-docker.mjs"
   },
   "dependencies": {
     "next": "16.3.0",

@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: phonemele:assessment-2
+    ports:
+      - "127.0.0.1:3000:3000"
+    init: true
+    restart: unless-stopped

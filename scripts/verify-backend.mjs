@@ -7,19 +7,28 @@ import { setTimeout as delay } from "node:timers/promises";
 
 // Exercise the built application over HTTP, using only Node's standard library.
 // The temporary server binds to loopback and is always stopped on completion.
-const portProbe = createServer();
-portProbe.listen(0, "127.0.0.1");
-await once(portProbe, "listening");
-const port = portProbe.address().port;
-await new Promise((resolve) => portProbe.close(resolve));
 const root = fileURLToPath(new URL("../", import.meta.url));
-const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(port)], {
-  cwd: root, windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
-});
+let server;
+let base = process.env.TEST_BASE_URL?.replace(/\/$/, "");
+if (base) {
+  const url = new URL(base);
+  assert.ok(url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname),
+    "TEST_BASE_URL must be a loopback HTTP URL for the local test app.");
+} else {
+  const portProbe = createServer();
+  portProbe.listen(0, "127.0.0.1");
+  await once(portProbe, "listening");
+  const port = portProbe.address().port;
+  await new Promise((resolve) => portProbe.close(resolve));
+  base = `http://127.0.0.1:${port}`;
+  server = spawn(process.execPath, ["scripts/start-production.mjs"], {
+    cwd: root, windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
+    env: { ...process.env, HOSTNAME: "127.0.0.1", PORT: String(port) },
+  });
+}
 let log = "";
-server.stdout.on("data", (data) => { log += data; });
-server.stderr.on("data", (data) => { log += data; });
-const base = `http://127.0.0.1:${port}`;
+server?.stdout.on("data", (data) => { log += data; });
+server?.stderr.on("data", (data) => { log += data; });
 let passed = 0;
 
 async function check(name, run) {
@@ -52,11 +61,13 @@ const wordsearch = {
 };
 
 try {
-  for (let i = 0; i < 120 && !log.includes("Ready in"); i++) {
-    if (server.exitCode !== null) throw new Error(log);
-    await delay(250);
+  if (server) {
+    for (let i = 0; i < 120 && !log.includes("Ready in"); i++) {
+      if (server.exitCode !== null) throw new Error(log);
+      await delay(250);
+    }
+    assert.ok(log.includes("Ready in"), `Server did not start: ${log}`);
   }
-  assert.ok(log.includes("Ready in"), `Server did not start: ${log}`);
 
   await check("health returns 200 and identifies the service", async () => {
     const response = await fetch(`${base}/health`);
@@ -69,6 +80,17 @@ try {
       const response = await fetch(base + route);
       assert.equal(response.status, 200, route);
       assert.match(await response.text(), /Phoneme/);
+    }
+  });
+  await check("production browser scripts and styles are served", async () => {
+    const page = await (await fetch(`${base}/wordle`)).text();
+    const paths = new Set([...page.matchAll(/(?:src|href)="([^"\s]*\/_next\/static\/[^"\s]+)"/g)].map((match) => match[1]));
+    assert.ok(paths.size > 0, "Expected production browser assets in rendered HTML");
+    for (const path of paths) {
+      const response = await fetch(new URL(path, base));
+      assert.equal(response.status, 200, path);
+      assert.match(response.headers.get("content-type"), /javascript|text\/css/i, path);
+      assert.ok((await response.text()).length > 0, path);
     }
   });
   await check("Wordle preserves multi-character tokens, settings and theme", async () => {
@@ -148,6 +170,8 @@ try {
   });
   console.log(`\n${passed} backend checks passed.`);
 } finally {
-  server.kill();
-  if (server.exitCode === null) await once(server, "exit");
+  if (server) {
+    server.kill();
+    if (server.exitCode === null) await once(server, "exit");
+  }
 }

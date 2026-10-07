@@ -6,11 +6,12 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** a
 
 ## Assessment 2 progress
 
-The inherited Next.js foundation is verified. Step 2 adds server-side activity generation, an API used by both builders, and `/health`. Database persistence, CRUD, and Docker support remain later assessment steps.
+The inherited Next.js foundation is verified. Step 2 adds server-side activity generation, an API used by both builders, and `/health`. Step 3 adds a verified Docker production image and Compose startup. Database persistence and CRUD remain later assessment steps. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
 
 - [Assessment 2 specification](Assignment2Specs.md)
 - [Baseline inspection, verification, and increment plan](docs/assessment-2-baseline.md)
 - [Step 2 backend architecture, API contract, and verification](docs/backend.md)
+- [Step 3 Docker setup, local certificate trust, and verification](docs/docker.md)
 
 The original scaffold commit, `02f544d`, records creation with `create-next-app`. Assessment 2 continues that application and its Git history; running the starter again is unnecessary.
 
@@ -34,6 +35,7 @@ The original scaffold commit, `02f544d`, records creation with `create-next-app`
 - CSS Modules and global CSS custom properties
 - ESLint
 - npm
+- Docker multi-stage production build and Compose
 
 Next.js Route Handlers provide the backend in the same application. The builders require the running server; downloaded student activities remain self-contained. There is currently no database or additional runtime dependency beyond Next.js and React.
 
@@ -69,6 +71,24 @@ To run the production build locally:
 ```bash
 npm run start
 ```
+
+### Run in Docker
+
+With Docker Desktop running Linux containers:
+
+```bash
+docker compose up --build -d --wait
+```
+
+Open [http://localhost:3000](http://localhost:3000). Stop the service with
+`docker compose down`. The image installs locked dependencies, builds the app,
+and runs its standalone production server as a non-root user. Its health check
+calls `/health`.
+
+Run `npm run test:docker` to build and check a temporary container. On this
+computer, Norton HTTPS scanning requires an optional build-only trusted CA;
+see [the certificate instructions](docs/docker.md#tls-scanning-networks-optional)
+before a clean Docker build. TLS verification remains enabled.
 
 ## Using the application
 
@@ -141,6 +161,6 @@ src/
 
 ## Assessment scope
 
-Step 2's backend supports the inherited frontend. Both builders use the activity-generation API; Word Search previews and exports share the same server-generated puzzle. Teacher content is not yet persisted and is lost on refresh. The phoneme inventory and starter list remain local reference/default data until database integration. The About page identifies the existing walkthrough as the Assessment 1 video.
+Step 2's backend supports the inherited frontend, and Step 3 runs it in Docker. Both builders use the activity-generation API; Word Search previews and exports share the same server-generated puzzle. Teacher content is not yet persisted and is lost on refresh. The phoneme inventory and starter list remain local reference/default data until database integration. The About page identifies the existing walkthrough as the Assessment 1 video.
 
 Current development: [master](https://github.com/kaonun/CSE3CWA-1/tree/master). Original submission: [assessment-1](https://github.com/kaonun/CSE3CWA-1/tree/assessment-1).

@@ -113,7 +113,7 @@ the table below supersedes that numbering to match the user's terminology.
 | --- | --- | --- |
 | 1 — Next.js foundation | Starter provenance verified. Requirement 1.2 spans later backend/database/API work and is not fully complete yet. | Locked install, lint, build, and existing production routes passed. |
 | 2 — backend supporting the frontend | Implemented: server activity processing and real API communication from both builders. See `backend.md`. | Lint, production build, HTTP checks, and browser verification; results recorded with the Step 2 commit. |
-| 3 — Docker | Pending: containerize the application using the relevant lab structure. | Build/run image and check application routes; revisit database persistence after Step 4. |
+| 3 — Docker | Implemented and runtime-verified. See `docker.md`. Exact lab-specific comparison remains pending because the lab example was not supplied. | Linux image build, non-root user, container health, all 27 HTTP checks, and Compose startup passed. Revisit database persistence after Step 4. |
 | 4 — database schema | Pending: schema, ORM, migrations, words, ordered phonemes, and multiple activity configurations. | Migrate an empty database; verify multi-character token round trips and restart persistence. |
 | 5 — CRUD | Pending: create/read/update/delete saved words, lists, and configurations. | API and UI CRUD, missing records, and relationship constraints. |
 | 6 — generation from stored data | Pending: generate both outputs from database-backed content. | Saved words/settings, preview consistency, and offline exported games. |
@@ -124,5 +124,6 @@ the table below supersedes that numbering to match the user's terminology.
 
 Each increment ends with its own verification, focused commit, push, and report.
 Database provider and relationship design are not selected in this baseline
-increment. The relevant Docker lab example is not present in the attached folders;
-consult it when preparing the container increment.
+increment. Step 3 now has a verified standalone Docker implementation designed
+from official guidance. The relevant lab example is not present in the attached
+folders; compare it if supplied before claiming verified lab-specific alignment.

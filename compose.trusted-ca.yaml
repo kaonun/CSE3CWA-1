@@ -1,0 +1,10 @@
+# Opt-in build override; the public CA is not passed to the running application.
+services:
+  app:
+    build:
+      secrets:
+        - npm_ca
+
+secrets:
+  npm_ca:
+    environment: DOCKER_BUILD_CA_PEM
