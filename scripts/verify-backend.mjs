@@ -1,20 +1,26 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { once } from "node:events";
 import { createServer } from "node:net";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
+import { promisify } from "node:util";
 
 // Exercise the built application over HTTP, using only Node's standard library.
 // The temporary server binds to loopback and is always stopped on completion.
 const root = fileURLToPath(new URL("../", import.meta.url));
 let server;
+let temporary;
 let base = process.env.TEST_BASE_URL?.replace(/\/$/, "");
 if (base) {
   const url = new URL(base);
   assert.ok(url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname),
     "TEST_BASE_URL must be a loopback HTTP URL for the local test app.");
 } else {
+  temporary = await mkdtemp(join(tmpdir(), "phonemele-backend-"));
   const portProbe = createServer();
   portProbe.listen(0, "127.0.0.1");
   await once(portProbe, "listening");
@@ -23,7 +29,9 @@ if (base) {
   base = `http://127.0.0.1:${port}`;
   server = spawn(process.execPath, ["scripts/start-production.mjs"], {
     cwd: root, windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, HOSTNAME: "127.0.0.1", PORT: String(port) },
+    // Relative input catches standalone's cwd change: startup must resolve it
+    // before migration/server boot rather than opening two different files.
+    env: { ...process.env, DATABASE_PATH: relative(root, join(temporary, "verification.db")), HOSTNAME: "127.0.0.1", PORT: String(port) },
   });
 }
 let log = "";
@@ -74,6 +82,12 @@ try {
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("cache-control"), "no-store");
     assert.deepEqual(await response.json(), { status: "ok", service: "phonemele" });
+  });
+  await check("database readiness returns 200 after migrations and inventory seed", async () => {
+    const response = await fetch(`${base}/health/database`);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.deepEqual(await response.json(), { status: "ok", database: "sqlite" });
   });
   await check("all existing frontend routes still render", async () => {
     for (const route of ["/", "/wordle", "/wordsearch", "/about", "/settings"]) {
@@ -168,10 +182,30 @@ try {
   await check("generation endpoint rejects GET", async () => {
     assert.equal((await fetch(`${base}/api/activities/generate`)).status, 405);
   });
+  if (temporary) {
+    await check("database failure reports 503 without affecting application liveness", async () => {
+      // A separate process avoids retaining Windows native-driver file handles
+      // in the test runner. Only its own isolated database is changed.
+      await promisify(execFile)(process.execPath, ["scripts/database-fixture.mjs", "unready"], {
+        cwd: root, windowsHide: true, timeout: 10000,
+        env: { ...process.env, DATABASE_PATH: join(temporary, "verification.db") },
+      });
+      const response = await fetch(`${base}/health/database`);
+      assert.equal(response.status, 503);
+      assert.equal(response.headers.get("cache-control"), "no-store");
+      assert.deepEqual(await response.json(), { status: "unavailable", message: "Database is not ready. Check the server setup." });
+      assert.equal((await fetch(`${base}/health`)).status, 200);
+    });
+  }
   console.log(`\n${passed} backend checks passed.`);
 } finally {
   if (server) {
     server.kill();
     if (server.exitCode === null) await once(server, "exit");
+  }
+  if (temporary) {
+    assert.equal(dirname(resolve(temporary)), resolve(tmpdir()));
+    assert.ok(temporary.includes("phonemele-backend-"));
+    await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }

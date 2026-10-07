@@ -1,0 +1,479 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "aa34982d-5a5d-4352-9b18-41c403501246",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "activity_configurations": {
+      "name": "activity_configurations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "word_list_id": {
+          "name": "word_list_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "answer_word_id": {
+          "name": "answer_word_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "max_guesses": {
+          "name": "max_guesses",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "grid_size": {
+          "name": "grid_size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "difficulty": {
+          "name": "difficulty",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "show_hints": {
+          "name": "show_hints",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "output_theme": {
+          "name": "output_theme",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'light'"
+        },
+        "output_filename": {
+          "name": "output_filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'phonemele-activity.html'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "activity_word_list": {
+          "name": "activity_word_list",
+          "columns": [
+            "word_list_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "activity_configurations_word_list_id_word_lists_id_fk": {
+          "name": "activity_configurations_word_list_id_word_lists_id_fk",
+          "tableFrom": "activity_configurations",
+          "tableTo": "word_lists",
+          "columnsFrom": [
+            "word_list_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "answer_belongs_to_list": {
+          "name": "answer_belongs_to_list",
+          "tableFrom": "activity_configurations",
+          "tableTo": "words",
+          "columnsFrom": [
+            "answer_word_id",
+            "word_list_id"
+          ],
+          "columnsTo": [
+            "id",
+            "word_list_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "activity_title_length": {
+          "name": "activity_title_length",
+          "value": "length(trim(\"activity_configurations\".\"title\")) between 1 and 120"
+        },
+        "activity_type_settings": {
+          "name": "activity_type_settings",
+          "value": "(\n    \"activity_configurations\".\"type\" = 'wordle' and \"activity_configurations\".\"answer_word_id\" is not null and\n    \"activity_configurations\".\"max_guesses\" is not null and typeof(\"activity_configurations\".\"max_guesses\") = 'integer' and \"activity_configurations\".\"max_guesses\" between 3 and 8 and\n    \"activity_configurations\".\"grid_size\" is null and \"activity_configurations\".\"difficulty\" is null\n  ) or (\n    \"activity_configurations\".\"type\" = 'wordsearch' and \"activity_configurations\".\"answer_word_id\" is null and \"activity_configurations\".\"max_guesses\" is null and\n    \"activity_configurations\".\"grid_size\" is not null and typeof(\"activity_configurations\".\"grid_size\") = 'integer' and \"activity_configurations\".\"grid_size\" between 6 and 15 and\n    \"activity_configurations\".\"difficulty\" is not null and \"activity_configurations\".\"difficulty\" in ('easy', 'hard')\n  )"
+        },
+        "activity_hints_boolean": {
+          "name": "activity_hints_boolean",
+          "value": "\"activity_configurations\".\"show_hints\" in (0, 1)"
+        },
+        "activity_theme": {
+          "name": "activity_theme",
+          "value": "\"activity_configurations\".\"output_theme\" in ('light', 'dark')"
+        },
+        "activity_filename": {
+          "name": "activity_filename",
+          "value": "length(\"activity_configurations\".\"output_filename\") between 6 and 120 and \"activity_configurations\".\"output_filename\" not glob '*[^a-zA-Z0-9_.-]*' and substr(\"activity_configurations\".\"output_filename\", -5) = '.html'"
+        }
+      }
+    },
+    "phonemes": {
+      "name": "phonemes",
+      "columns": {
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "example": {
+          "name": "example",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "phoneme_group": {
+          "name": "phoneme_group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "phoneme_symbol_length": {
+          "name": "phoneme_symbol_length",
+          "value": "length(\"phonemes\".\"symbol\") between 1 and 8"
+        },
+        "phoneme_type": {
+          "name": "phoneme_type",
+          "value": "\"phonemes\".\"type\" in ('consonant', 'vowel')"
+        }
+      }
+    },
+    "word_lists": {
+      "name": "word_lists",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "list_title_length": {
+          "name": "list_title_length",
+          "value": "length(trim(\"word_lists\".\"title\")) between 1 and 120"
+        },
+        "list_description_length": {
+          "name": "list_description_length",
+          "value": "length(\"word_lists\".\"description\") <= 1000"
+        }
+      }
+    },
+    "word_phonemes": {
+      "name": "word_phonemes",
+      "columns": {
+        "word_id": {
+          "name": "word_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "word_phoneme_symbol": {
+          "name": "word_phoneme_symbol",
+          "columns": [
+            "symbol"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "word_phonemes_word_id_words_id_fk": {
+          "name": "word_phonemes_word_id_words_id_fk",
+          "tableFrom": "word_phonemes",
+          "tableTo": "words",
+          "columnsFrom": [
+            "word_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "word_phonemes_symbol_phonemes_symbol_fk": {
+          "name": "word_phonemes_symbol_phonemes_symbol_fk",
+          "tableFrom": "word_phonemes",
+          "tableTo": "phonemes",
+          "columnsFrom": [
+            "symbol"
+          ],
+          "columnsTo": [
+            "symbol"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "word_phonemes_word_id_position_pk": {
+          "columns": [
+            "word_id",
+            "position"
+          ],
+          "name": "word_phonemes_word_id_position_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "phoneme_position": {
+          "name": "phoneme_position",
+          "value": "\"word_phonemes\".\"position\" between 0 and 14 and typeof(\"word_phonemes\".\"position\") = 'integer'"
+        }
+      }
+    },
+    "words": {
+      "name": "words",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "word_list_id": {
+          "name": "word_list_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "english_word": {
+          "name": "english_word",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "hint": {
+          "name": "hint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "word_list_position": {
+          "name": "word_list_position",
+          "columns": [
+            "word_list_id",
+            "position"
+          ],
+          "isUnique": true
+        },
+        "word_id_list": {
+          "name": "word_id_list",
+          "columns": [
+            "id",
+            "word_list_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "words_word_list_id_word_lists_id_fk": {
+          "name": "words_word_list_id_word_lists_id_fk",
+          "tableFrom": "words",
+          "tableTo": "word_lists",
+          "columnsFrom": [
+            "word_list_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "word_position": {
+          "name": "word_position",
+          "value": "\"words\".\"position\" >= 0 and typeof(\"words\".\"position\") = 'integer'"
+        },
+        "english_word_length": {
+          "name": "english_word_length",
+          "value": "length(\"words\".\"english_word\") <= 120"
+        },
+        "word_hint_length": {
+          "name": "word_hint_length",
+          "value": "length(\"words\".\"hint\") <= 300"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

@@ -1,5 +1,9 @@
 # Step 2: backend supporting the builders
 
+This records the Step 2 increment. Step 4 has since added the storage foundation
+and `/health/database`; see `database.md`. The generation route still uses editor
+values until saved-data generation is connected in Step 6.
+
 The backend runs inside the existing Next.js application using App Router Route
 Handlers. There is no separate Express service or additional runtime dependency.
 This step implements all of instruction 2's nested requirements:

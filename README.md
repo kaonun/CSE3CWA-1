@@ -6,12 +6,13 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** a
 
 ## Assessment 2 progress
 
-The inherited Next.js foundation is verified. Step 2 adds server-side activity generation, an API used by both builders, and `/health`. Step 3 adds a verified Docker production image and Compose startup. Database persistence and CRUD remain later assessment steps. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
+The inherited Next.js foundation is verified. Step 2 adds server-side activity generation, an API used by both builders, and `/health`. Step 3 adds a verified Docker production image and Compose startup. Step 4 implements the SQLite/Drizzle schema, migrations, and persistent Docker storage. Teacher-facing CRUD and generation from saved content remain Steps 5 and 6. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
 
 - [Assessment 2 specification](Assignment2Specs.md)
 - [Baseline inspection, verification, and increment plan](docs/assessment-2-baseline.md)
 - [Step 2 backend architecture, API contract, and verification](docs/backend.md)
 - [Step 3 Docker setup, local certificate trust, and verification](docs/docker.md)
+- [Step 4 database design, setup, and persistence verification](docs/database.md)
 
 The original scaffold commit, `02f544d`, records creation with `create-next-app`. Assessment 2 continues that application and its Git history; running the starter again is unnecessary.
 
@@ -36,14 +37,15 @@ The original scaffold commit, `02f544d`, records creation with `create-next-app`
 - ESLint
 - npm
 - Docker multi-stage production build and Compose
+- SQLite with Drizzle ORM and tracked SQL migrations
 
-Next.js Route Handlers provide the backend in the same application. The builders require the running server; downloaded student activities remain self-contained. There is currently no database or additional runtime dependency beyond Next.js and React.
+Next.js Route Handlers provide the backend in the same application. The builders require the running server; downloaded student activities remain self-contained. The local database is accessed only by server-side modules. There is no separate backend or cloud database service.
 
 ## Getting started
 
 ### Requirements
 
-- Node.js 20.9 or newer
+- Node.js 24 (matching the tested Docker runtime)
 - npm
 - A modern browser
 
@@ -63,6 +65,7 @@ The development server uses hot reload, so saved changes appear automatically.
 ```bash
 npm run lint
 npm run build
+npm run test:database
 npm run test:backend
 ```
 
@@ -83,7 +86,9 @@ docker compose up --build -d --wait
 Open [http://localhost:3000](http://localhost:3000). Stop the service with
 `docker compose down`. The image installs locked dependencies, builds the app,
 and runs its standalone production server as a non-root user. Its health check
-calls `/health`.
+calls `/health/database`. Startup applies migrations before serving requests,
+and a named volume retains the database when the container is replaced. Stop
+with `docker compose down` without `--volumes` to preserve teacher data.
 
 Run `npm run test:docker` to build and check a temporary container. On this
 computer, Norton HTTPS scanning requires an optional build-only trusted CA;
@@ -123,6 +128,7 @@ The exact grid shown in the preview is embedded in the exported file, so student
 | `/about` | Project scope, tool descriptions, author details, and walkthrough video |
 | `/settings` | Cookie-persisted light/dark theme control |
 | `/health` | Application liveness, returning JSON and `200 OK` |
+| `/health/database` | Database/inventory readiness, returning `200` or a generic `503` |
 | `/api/activities/generate` | POST validated Wordle/Word Search settings for server-generated activity output |
 
 ## Project structure
@@ -135,6 +141,7 @@ src/
 └── lib/
     ├── api/             # Browser API client
     ├── server/          # Server-only request handling and activity service
+    ├── db/              # ORM schema, local connection, and ordered storage readers
     ├── export/          # Standalone HTML document, styles, and activity templates
     ├── wordle/          # Two-pass Wordle scoring
     ├── wordsearch/      # Grid generation and placement
@@ -161,6 +168,6 @@ src/
 
 ## Assessment scope
 
-Step 2's backend supports the inherited frontend, and Step 3 runs it in Docker. Both builders use the activity-generation API; Word Search previews and exports share the same server-generated puzzle. Teacher content is not yet persisted and is lost on refresh. The phoneme inventory and starter list remain local reference/default data until database integration. The About page identifies the existing walkthrough as the Assessment 1 video.
+Steps 2–4 provide the backend, Docker runtime, and verified persistent storage foundation. Both builders use the activity-generation API; Word Search previews and exports share the same server-generated puzzle. The builders do not yet save/load database records, so editor content still resets on refresh. The database is initialized with the phoneme inventory only; teacher-facing CRUD is Step 5, and saved-data generation is Step 6. The About page identifies the existing walkthrough as the Assessment 1 video.
 
 Current development: [master](https://github.com/kaonun/CSE3CWA-1/tree/master). Original submission: [assessment-1](https://github.com/kaonun/CSE3CWA-1/tree/assessment-1).

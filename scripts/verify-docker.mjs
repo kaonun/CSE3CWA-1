@@ -10,7 +10,9 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const docker = process.env.DOCKER_BIN || "docker";
 const image = "phonemele:assessment-2";
 const name = `phonemele-verify-${randomUUID().slice(0, 8)}`;
+const volume = `${name}-data`;
 let created = false;
+let volumeCreated = false;
 
 async function capture(args) {
   return (await execute(docker, args, { cwd: root, windowsHide: true, timeout: 30000 })).stdout.trim();
@@ -24,6 +26,32 @@ async function run(command, args, env = process.env) {
   });
 }
 
+async function startContainer() {
+  const id = await capture(["run", "--detach", "--init", "--name", name, "--publish", "127.0.0.1::3000", "--mount", `type=volume,source=${volume},target=/app/data`, image]);
+  created = true;
+  console.log(`Started verification container ${id.slice(0, 12)}.`);
+  for (let i = 0; i < 90; i++) {
+    const state = JSON.parse(await capture(["inspect", "--format", "{{json .State}}", name]));
+    assert.ok(state.Running, "Verification container exited before becoming healthy");
+    if (state.Health?.Status === "healthy") return;
+    if (state.Health?.Status === "unhealthy") throw new Error("Container health check failed.");
+    await delay(1000);
+  }
+  throw new Error("Container did not become healthy within 90 seconds");
+}
+
+async function fixture(phase) {
+  // Inject test code only into our temporary container, not the production image.
+  await capture(["cp", fileURLToPath(new URL("database-fixture.mjs", import.meta.url)), `${name}:/app/scripts/database-fixture.mjs`]);
+  console.log(await capture(["exec", name, "node", "scripts/database-fixture.mjs", phase]));
+}
+
+async function backendChecks() {
+  const binding = await capture(["port", name, "3000/tcp"]);
+  assert.match(binding, /^127\.0\.0\.1:\d+$/);
+  await run(process.execPath, ["scripts/verify-backend.mjs"], { ...process.env, TEST_BASE_URL: `http://${binding}` });
+}
+
 try {
   console.log("Checking Docker engine and Compose configuration…");
   assert.equal(await capture(["info", "--format", "{{.OSType}}"]), "linux", "Use Docker's Linux container engine");
@@ -35,26 +63,23 @@ try {
   const build = ["build", "--tag", image];
   if (process.env.DOCKER_BUILD_CA_PEM) build.push("--secret", "id=npm_ca,env=DOCKER_BUILD_CA_PEM");
   await run(docker, [...build, "."]);
-  const id = await capture(["run", "--detach", "--init", "--name", name, "--publish", "127.0.0.1::3000", image]);
-  created = true;
-  console.log(`Started verification container ${id.slice(0, 12)}.`);
-  let healthy = false;
-  for (let i = 0; i < 90; i++) {
-    const state = JSON.parse(await capture(["inspect", "--format", "{{json .State}}", name]));
-    assert.ok(state.Running, "Verification container exited before becoming healthy");
-    if (state.Health?.Status === "healthy") { healthy = true; break; }
-    if (state.Health?.Status === "unhealthy") throw new Error("Container health check failed.");
-    await delay(1000);
-  }
-  assert.ok(healthy, "Container did not become healthy within 90 seconds");
-  const binding = await capture(["port", name, "3000/tcp"]);
-  assert.match(binding, /^127\.0\.0\.1:\d+$/);
-  const base = `http://${binding}`;
+  assert.equal(await capture(["run", "--rm", "--entrypoint", "node", image, "-e", "console.log(JSON.stringify(require('node:fs').readdirSync('/app/data')))"]), "[]", "Production image must not contain a host database");
+  assert.equal(await capture(["run", "--rm", "--entrypoint", "node", image, "-e", "console.log(require('node:fs').existsSync('/app/scripts/database-fixture.mjs'))"]), "false", "Production image must not include the fixture writer");
+  await capture(["volume", "create", "--label", `phonemele.verification=${name}`, volume]);
+  volumeCreated = true;
+  await startContainer();
   assert.notEqual(await capture(["exec", name, "id", "-u"]), "0", "Application must run as a non-root user");
   assert.equal(await capture(["exec", name, "node", "-e", "console.log(require('node:fs').existsSync('/run/secrets/npm_ca') || Boolean(process.env.NODE_EXTRA_CA_CERTS))"]), "false", "Build-only CA must not persist in the application container");
-  console.log(`Container is healthy and runs as a non-root user. Testing ${base}…`);
-  await run(process.execPath, ["scripts/verify-backend.mjs"], { ...process.env, TEST_BASE_URL: base });
-  console.log("Docker build, health check, runtime user, browser assets, and activity APIs verified.");
+  console.log("Container is healthy and runs as a non-root user.");
+  await backendChecks();
+  await fixture("write");
+  await capture(["rm", "--force", name]);
+  created = false;
+  console.log("Recreating the container with the same owned test volume…");
+  await startContainer();
+  await fixture("read");
+  await backendChecks();
+  console.log("Docker build, database readiness, APIs and container-recreation persistence verified.");
 } catch (error) {
   if (created) {
     try { console.error(await capture(["logs", name])); } catch { /* Preserve the original failure. */ }
@@ -64,5 +89,10 @@ try {
   if (created) {
     await capture(["rm", "--force", name]);
     console.log("Removed the temporary verification container; the built image remains available.");
+  }
+  if (volumeCreated) {
+    assert.equal(await capture(["volume", "inspect", "--format", '{{index .Labels "phonemele.verification"}}', volume]), name);
+    await capture(["volume", "rm", volume]);
+    console.log("Removed only the owned temporary verification volume and its fixture data.");
   }
 }

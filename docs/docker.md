@@ -8,14 +8,16 @@ into the runtime image. The runtime contains the required server dependencies,
 browser assets, and any public assets, and runs as the existing non-root `node`
 user. `node server.js` runs as the main application process.
 
-`next.config.mjs` enables standalone output. `npm run start` prepares the separate
-browser/public assets for local production use and starts the same generated
-server. Docker copies those assets during its image build instead.
+`next.config.mjs` enables standalone output. `npm run start` migrates the local
+database, prepares separate browser/public assets, and starts the generated
+server. Docker copies those assets during the build and runs database migrations
+before importing the generated server in the same Node process.
 
 The build context excludes host dependencies, build output, Git metadata,
 environment files, private keys, local tool settings, and documentation via
-`.dockerignore`. The container's health check calls `/health` using Node's built-in
-HTTP client, so curl is not required.
+`.dockerignore`, including the local `data/` directory. Since Step 4, the health
+check calls `/health/database` using Node's built-in HTTP client, so curl is not
+required. `/health` remains the application-only liveness endpoint.
 
 The default base image is `node:24-bookworm-slim`, pinned to the verified image
 digest `sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20`.
@@ -41,7 +43,7 @@ docker compose up --build -d --wait
 docker compose ps
 ```
 
-Open `http://localhost:3000` and `http://localhost:3000/health`.
+Open `http://localhost:3000`, `/health`, and `/health/database`.
 Compose publishes the port only on the local computer. Stop any other application
 using port 3000 before starting it, or change the host port in `compose.yaml`.
 
@@ -67,11 +69,11 @@ npm run test:docker
 
 This command validates the Compose configuration, builds the Dockerfile, starts
 a uniquely named temporary container on an automatically allocated loopback
-port, waits for its health check, verifies that it runs as a non-root user, and
-runs the backend checks against the container. Those checks include both activity
-types and the browser CSS/JavaScript files needed to use the builders. The command
-removes only its own temporary container on completion; the image remains for
-manual demonstration.
+port, waits for its health check, verifies its non-root user, and runs backend
+checks. Step 4 extends this with a uniquely named test volume, ORM fixture checks,
+and removing/recreating the container on the same volume to verify persistence.
+Both activity types and browser assets are still checked. The command removes
+only its owned temporary container/labelled volume; the image remains available.
 
 You can also test an already running container, without starting a local server:
 
@@ -130,7 +132,7 @@ mount nor its environment setting is copied into the production runtime.
 `compose.trusted-ca.yaml` is an explicit opt-in build override, not a runtime
 secret. The default Compose file stays usable without machine-specific trust.
 
-## Current verification status
+## Step 3 verification record
 
 Verified on 7 October 2026 after installing Docker Desktop 4.94.0 and starting
 its Linux engine. The pinned Linux image uses Node.js 24.21.0; local Windows
@@ -155,7 +157,10 @@ to the course lab's Dockerfile remains unverified until that material is supplie
 These HTTP checks do not claim a new interactive-browser or offline-export
 regression pass; saved-data/export verification is scheduled for Step 6.
 
-Database persistence does not exist yet. Step 4 will add its database requirements
-to the image/startup process, and later verification must cover data surviving
-container recreation. No empty placeholder database service or volume is added
-at this step.
+## Step 4 update
+
+SQLite/Drizzle storage, migration-on-startup, database readiness, and a persistent
+`teacher-data` volume are now implemented. See [database design and verification](database.md)
+for the schema, 22 storage/persistence checks, 29 local HTTP checks, and verified
+Linux container recreation. Local and Docker data are separate. Use
+`docker compose down` without `--volumes`/`-v` to retain teacher records.

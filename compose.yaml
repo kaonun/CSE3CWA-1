@@ -8,3 +8,8 @@ services:
       - "127.0.0.1:3000:3000"
     init: true
     restart: unless-stopped
+    volumes:
+      - teacher-data:/app/data
+
+volumes:
+  teacher-data:

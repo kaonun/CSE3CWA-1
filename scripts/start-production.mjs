@@ -1,8 +1,13 @@
 import { cp, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { databasePath } from "../src/lib/db/connection.mjs";
 
 const root = new URL("../", import.meta.url);
 const standalone = new URL(".next/standalone/", root);
+// The generated server changes cwd to .next/standalone. Freeze the original
+// absolute database path so migration and runtime always open the same file.
+process.env.DATABASE_PATH = databasePath();
+await import("./migrate-database.mjs");
 // Next.js traces server dependencies but leaves browser/public assets separate.
 // The Dockerfile copies them at image build time; local startup prepares them here.
 await mkdir(new URL(".next/", standalone), { recursive: true });
