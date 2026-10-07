@@ -1,0 +1,16 @@
+.library { padding-bottom: 2rem; }
+.workspace { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); gap: 1.5rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.panel { background: var(--color-surface); padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); min-width: 0; }
+.library form { margin: 1.5rem 0; border-top: 1px solid var(--color-border); padding-top: 1rem; }
+.library label { display: block; margin: .75rem 0; }
+.library input:not([type="checkbox"]), .library textarea, .library select { display: block; width: 100%; font: inherit; padding: .5rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-ink); background: var(--color-bg); }
+.library button { font: inherit; cursor: pointer; padding: .4rem .65rem; margin: .25rem; background: var(--color-surface-muted); color: var(--color-ink); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.library button:disabled { cursor: default; opacity: .6; }
+.library button[aria-pressed="true"] { border: 2px solid var(--color-accent); }
+.library ul { list-style: none; padding: 0; }
+.library li { padding: .5rem 0; border-bottom: 1px solid var(--color-border); overflow-wrap: anywhere; }
+.library li span { display: block; }
+.error { color: var(--color-danger); }
+.confirmation { padding: 1rem; margin: 1rem 0; border: 2px solid var(--color-danger); background: var(--color-surface); }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 760px) { .workspace { grid-template-columns: minmax(0, 1fr); } }

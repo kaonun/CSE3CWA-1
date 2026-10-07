@@ -1,5 +1,9 @@
 # Step 4: database schema and integration
 
+This records the Step 4 foundation. Step 5 now provides teacher-facing CRUD;
+see [the current workflow and verification](crud.md). Remaining-scope statements
+below describe the state at the Step 4 checkpoint.
+
 ## Requirements and provider choice
 
 SQLite stores the teacher database locally. Drizzle ORM 0.45.3 defines the schema

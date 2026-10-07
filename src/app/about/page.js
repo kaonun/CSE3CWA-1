@@ -26,9 +26,11 @@ export default function AboutPage() {
         <h2>Scope</h2>
         <p>
           The builder now uses a server to prepare classroom activities.
-          Downloaded HTML games still work offline. Word lists and settings
-          are not yet saved: keep your downloaded activities before leaving
-          or refreshing the builder.
+          Downloaded HTML games still work offline. The Teacher Library stores
+          word lists, words, hints, and multiple activity configurations in a
+          database. Generation from those saved configurations is the next
+          development step; the existing builders still use temporary editor
+          values that reset on refresh.
         </p>
       </section>
 

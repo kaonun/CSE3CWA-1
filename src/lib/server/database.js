@@ -11,3 +11,12 @@ export async function getDatabase() {
   }
   return globalThis.phonemeleDatabase;
 }
+
+// libSQL's single connection cannot be borrowed while a transaction owns it.
+// Queue all application database work, including readiness, across route modules.
+export function withDatabase(action) {
+  const previous = globalThis.phonemeleDatabaseWork || Promise.resolve();
+  const work = previous.then(async () => action((await getDatabase()).db));
+  globalThis.phonemeleDatabaseWork = work.then(() => undefined, () => undefined);
+  return work;
+}

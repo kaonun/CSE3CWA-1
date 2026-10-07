@@ -6,13 +6,14 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** a
 
 ## Assessment 2 progress
 
-The inherited Next.js foundation is verified. Step 2 adds server-side activity generation, an API used by both builders, and `/health`. Step 3 adds a verified Docker production image and Compose startup. Step 4 implements the SQLite/Drizzle schema, migrations, and persistent Docker storage. Teacher-facing CRUD and generation from saved content remain Steps 5 and 6. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
+The inherited Next.js foundation is verified. Steps 2–4 add server-side generation, APIs, `/health`, Docker, and persistent SQLite/Drizzle storage. Step 5 implements the Teacher Library and CRUD for words, lists and multiple activity configurations. The required CRUD video evidence (5.4) remains for Step 8; generation from saved content is Step 6. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
 
 - [Assessment 2 specification](Assignment2Specs.md)
 - [Baseline inspection, verification, and increment plan](docs/assessment-2-baseline.md)
 - [Step 2 backend architecture, API contract, and verification](docs/backend.md)
 - [Step 3 Docker setup, local certificate trust, and verification](docs/docker.md)
 - [Step 4 database design, setup, and persistence verification](docs/database.md)
+- [Step 5 Library workflow, CRUD API, verification, and pending video evidence](docs/crud.md)
 
 The original scaffold commit, `02f544d`, records creation with `create-next-app`. Assessment 2 continues that application and its Git history; running the starter again is unnecessary.
 
@@ -97,6 +98,17 @@ before a clean Docker build. TLS verification remains enabled.
 
 ## Using the application
 
+### Teacher Library
+
+Open `/library` to create a list, add/edit words using the phoneme keyboard,
+save multiple Wordle/Word Search configurations, and retrieve them after reload.
+Delete controls require confirmation; deleting an entire list also deletes its
+words and configurations. Selected Wordle answers are protected until their
+configuration is changed/deleted. See [the CRUD guide](docs/crud.md).
+
+Saved configurations are not yet connected to the activity builders: that
+workflow is Step 6. Existing builder editor values remain temporary.
+
 ### Wordle
 
 1. Open `/wordle`.
@@ -125,11 +137,13 @@ The exact grid shown in the preview is embedded in the exported file, so student
 | `/` | Project landing page |
 | `/wordle` | Wordle builder, preview, and export |
 | `/wordsearch` | Word Search builder, preview, and export |
+| `/library` | Database-backed management of lists, words and activity configurations |
 | `/about` | Project scope, tool descriptions, author details, and walkthrough video |
 | `/settings` | Cookie-persisted light/dark theme control |
 | `/health` | Application liveness, returning JSON and `200 OK` |
 | `/health/database` | Database/inventory readiness, returning `200` or a generic `503` |
 | `/api/activities/generate` | POST validated Wordle/Word Search settings for server-generated activity output |
+| `/api/word-lists`, `/api/words`, `/api/configurations` | Saved-content CRUD; see the guide for supported methods and record routes |
 
 ## Project structure
 
@@ -168,6 +182,6 @@ src/
 
 ## Assessment scope
 
-Steps 2–4 provide the backend, Docker runtime, and verified persistent storage foundation. Both builders use the activity-generation API; Word Search previews and exports share the same server-generated puzzle. The builders do not yet save/load database records, so editor content still resets on refresh. The database is initialized with the phoneme inventory only; teacher-facing CRUD is Step 5, and saved-data generation is Step 6. The About page identifies the existing walkthrough as the Assessment 1 video.
+Steps 2–5 provide the backend, Docker runtime, persistent storage and teacher-facing CRUD. The Library saves/loads words, lists and multiple configurations. Both existing builders use the stateless generation API; their editor content still resets on refresh. Generation directly from stored configurations is Step 6. Startup seeds only the phoneme inventory, not hard-coded teacher lists. The About page identifies the existing walkthrough as the Assessment 1 video; new CRUD video evidence is still required.
 
 Current development: [master](https://github.com/kaonun/CSE3CWA-1/tree/master). Original submission: [assessment-1](https://github.com/kaonun/CSE3CWA-1/tree/assessment-1).

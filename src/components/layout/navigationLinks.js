@@ -3,5 +3,6 @@ export const NAV_LINKS = [
   { href: "/about", label: "About" },
   { href: "/wordle", label: "Wordle" },
   { href: "/wordsearch", label: "Word Search" },
+  { href: "/library", label: "Library" },
   { href: "/settings", label: "Settings" },
 ];

@@ -164,3 +164,12 @@ SQLite/Drizzle storage, migration-on-startup, database readiness, and a persiste
 for the schema, 22 storage/persistence checks, 29 local HTTP checks, and verified
 Linux container recreation. Local and Docker data are separate. Use
 `docker compose down` without `--volumes`/`-v` to retain teacher records.
+
+## Step 5 update
+
+The Library and saved-content CRUD APIs are now implemented. The updated image
+passed all 47 normal HTTP checks before and after container replacement, plus
+22 direct database checks. Additional API-created/edited words and both saved
+configuration types retained their content on the same temporary test volume.
+See [the CRUD workflow and verification](crud.md). Verification removes only
+its own temporary container and labelled volume, never `teacher-data`.

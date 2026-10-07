@@ -13,6 +13,7 @@ const name = `phonemele-verify-${randomUUID().slice(0, 8)}`;
 const volume = `${name}-data`;
 let created = false;
 let volumeCreated = false;
+let apiRecords;
 
 async function capture(args) {
   return (await execute(docker, args, { cwd: root, windowsHide: true, timeout: 30000 })).stdout.trim();
@@ -46,10 +47,43 @@ async function fixture(phase) {
   console.log(await capture(["exec", name, "node", "scripts/database-fixture.mjs", phase]));
 }
 
-async function backendChecks() {
+async function baseUrl() {
   const binding = await capture(["port", name, "3000/tcp"]);
   assert.match(binding, /^127\.0\.0\.1:\d+$/);
-  await run(process.execPath, ["scripts/verify-backend.mjs"], { ...process.env, TEST_BASE_URL: `http://${binding}` });
+  return `http://${binding}`;
+}
+async function backendChecks() {
+  await run(process.execPath, ["scripts/verify-backend.mjs"], { ...process.env, TEST_BASE_URL: await baseUrl() });
+}
+async function apiRequest(path, method = "GET", body) {
+  const response = await fetch(`${await baseUrl()}/api${path}`, {
+    method, headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(10000),
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+  const result = await response.json();
+  assert.equal(response.status, method === "POST" ? 201 : 200, JSON.stringify(result));
+  return result.data;
+}
+async function writeApiRecords() {
+  const list = await apiRequest("/word-lists", "POST", { title: "API persistence verification" });
+  const word = await apiRequest(`/word-lists/${list.id}/words`, "POST", { phonemes: ["tʃ", "eː"], englishWord: "chair", hint: "Initial hint" });
+  await apiRequest(`/words/${word.id}`, "PATCH", { hint: "Edited through API" });
+  const wordle = await apiRequest("/configurations", "POST", { title: "Persistent Wordle", type: "wordle", wordListId: list.id, answerWordId: word.id, maxGuesses: 5, outputTheme: "dark", outputFilename: "saved-wordle.html" });
+  const search = await apiRequest("/configurations", "POST", { title: "Persistent Search", type: "wordsearch", wordListId: list.id, gridSize: 8, difficulty: "hard" });
+  apiRecords = { list, word, wordle, search };
+  console.log("Created and edited persistence records through the running CRUD API.");
+}
+async function readApiRecords() {
+  const list = await apiRequest(`/word-lists/${apiRecords.list.id}`);
+  assert.equal(list.words.length, 1);
+  assert.equal(list.words[0].id, apiRecords.word.id);
+  assert.deepEqual(list.words[0].phonemes, ["tʃ", "eː"]);
+  assert.equal(list.words[0].hint, "Edited through API");
+  const wordle = await apiRequest(`/configurations/${apiRecords.wordle.id}`);
+  assert.equal(wordle.maxGuesses, 5); assert.equal(wordle.outputTheme, "dark"); assert.equal(wordle.outputFilename, "saved-wordle.html");
+  const search = await apiRequest(`/configurations/${apiRecords.search.id}`);
+  assert.equal(search.gridSize, 8); assert.equal(search.difficulty, "hard");
+  console.log("PASS API-created words, edits and both configuration types survive container replacement.");
 }
 
 try {
@@ -73,11 +107,13 @@ try {
   console.log("Container is healthy and runs as a non-root user.");
   await backendChecks();
   await fixture("write");
+  await writeApiRecords();
   await capture(["rm", "--force", name]);
   created = false;
   console.log("Recreating the container with the same owned test volume…");
   await startContainer();
   await fixture("read");
+  await readApiRecords();
   await backendChecks();
   console.log("Docker build, database readiness, APIs and container-recreation persistence verified.");
 } catch (error) {
