@@ -50,10 +50,12 @@ export function ConfigurationForm({ activity, list, save, cancel }) {
   }
   return <form onSubmit={submit}>
     <h3>{activity ? "Edit activity configuration" : "New activity configuration"}</h3>
+    <p>Source word list: {list.title}. The activity title below names this game, not the word list.</p>
     <label>Activity title<input required maxLength={120} value={title} onChange={(event) => setTitle(event.target.value)} /></label>
     <label>Activity type<select disabled={!!activity} value={type} onChange={(event) => setType(event.target.value)}><option value="wordle">Wordle</option><option value="wordsearch">Word Search</option></select></label>
     {type === "wordle" ? <>
-      <label>Answer word<select required value={answerWordId} onChange={(event) => setAnswer(event.target.value)}>{list.words.map((word) => <option key={word.id} value={word.id}>{word.englishWord || "Untitled word"} /{word.phonemes.join("")}/</option>)}</select></label>
+      <p>Choose exactly one correct answer. Other words in this list are not alternative answers for this Wordle.</p>
+      <label>Answer word<select required value={answerWordId} onChange={(event) => setAnswer(event.target.value)}>{list.words.map((word) => <option key={word.id} value={word.id}>{word.englishWord || "Untitled word"} /{word.phonemes.join(" ")}/</option>)}</select></label>
       <label>Maximum guesses<input type="number" required min={3} max={8} step={1} value={maxGuesses} onChange={(event) => setGuesses(Number(event.target.value))} /></label>
     </> : <>
       <label>Saved grid size<input type="number" required min={6} max={15} step={1} value={gridSize} onChange={(event) => setSize(Number(event.target.value))} /></label>

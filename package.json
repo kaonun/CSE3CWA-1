@@ -15,7 +15,8 @@
     "db:migrate": "node scripts/migrate-database.mjs",
     "test:database": "node scripts/verify-database.mjs",
     "test:client-errors": "node scripts/verify-client-errors.mjs",
-    "check": "npm run lint && npm run build && npm run test:client-errors && npm run test:database && npm run test:backend"
+    "test:ui-behavior": "node scripts/verify-ui-behavior.mjs",
+    "check": "npm run lint && npm run build && npm run test:client-errors && npm run test:ui-behavior && npm run test:database && npm run test:backend"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",

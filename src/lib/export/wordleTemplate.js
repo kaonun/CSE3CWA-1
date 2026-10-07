@@ -217,9 +217,18 @@ export function wordleTemplate(config) {
         if (CONFIG.showHints) {
           var hintId = "hint-" + encodeURIComponent(symbol);
           btn.setAttribute("aria-describedby", hintId);
-          btn.title = hintFor(symbol);
         }
+        wrapper.addEventListener("pointerenter", function () {
+          wrapper.setAttribute("data-hint-dismissed", "false");
+        });
+        btn.addEventListener("focus", function () {
+          wrapper.setAttribute("data-hint-dismissed", "false");
+        });
+        btn.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") wrapper.setAttribute("data-hint-dismissed", "true");
+        });
         btn.addEventListener("click", function () {
+          wrapper.setAttribute("data-hint-dismissed", "true");
           if (isGameOver()) return;
           if (state.currentGuess.length >= CONFIG.answer.length) return;
           state.currentGuess.push(symbol);

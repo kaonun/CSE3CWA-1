@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { storageRequest } from "@/lib/api/storage";
 import { ConfigurationForm, ListForm, WordForm } from "./LibraryForms";
+import { savedActivityLabel } from "@/lib/activity-labels";
 import styles from "./Library.module.css";
 
 export default function Library() {
@@ -84,6 +85,7 @@ export default function Library() {
   return <div className={styles.library}>
     <h1>Teacher Library</h1>
     <p>Save word lists and multiple activity configurations. Only saved changes survive a reload. Switching lists or editors discards unsaved form changes.</p>
+    <p>A word list stores reusable words. A saved activity configuration has its own title and game settings and uses one word list. Several activities can share the same list.</p>
     <p>Open a saved configuration in its builder to preview and download an offline student activity using the database content.</p>
     <p role="status" aria-live="polite">{message}</p>
     {error && <p role="alert" className={styles.error}>{error}</p>}
@@ -96,13 +98,14 @@ export default function Library() {
       <legend className={styles.srOnly}>Manage saved content</legend>
       <aside className={styles.panel}>
         <h2>Word lists ({listTotal})</h2>
+        <p>Select a word list to see its words and saved activity configurations.</p>
         <button onClick={() => run(async () => { await refresh(list?.id); resetEditors(); }, "Saved content refreshed.")}>Reload saved content</button>
         <ul>{lists.map((row) => <li key={row.id}><button aria-pressed={row.id === list?.id} onClick={() => chooseList(row.id)}>{row.title} ({row.wordCount} {row.wordCount === 1 ? "word" : "words"})</button></li>)}</ul>
         {lists.length < listTotal && <button onClick={() => run(moreLists, "More lists loaded.")}>Load more lists</button>}
         <ListForm key={`new-${revision}`} save={(body) => saveList(body, false)} />
       </aside>
       {list ? <section className={styles.panel} aria-label="Selected list">
-        <h2>{list.title}</h2><p>{list.description}</p>
+        <h2>Word list: {list.title}</h2><p>{list.description}</p>
         <button onClick={() => setEditList((value) => !value)}>Edit list details</button>
         <button onClick={() => setDeletion({ path: `/word-lists/${list.id}`, label: list.title, wholeList: true })}>Delete list</button>
         {editList && <ListForm key={list.id} list={list} save={(body) => saveList(body, true)} cancel={() => setEditList(false)} />}
@@ -114,8 +117,9 @@ export default function Library() {
         </li>)}</ul>
         <WordForm key={`word-${list.id}-${word?.id}-${revision}`} word={word} save={saveWord} cancel={() => { setWord(null); setError(""); setRevision((value) => value + 1); }} />
         <h2>Activity configurations ({configurationTotal})</h2>
+        <p>These saved activities use the word list “{list.title}”. Their activity titles appear in the builders’ saved activity menus.</p>
         <ul>{configurations.map((row) => <li key={row.id}>
-          <span>{row.title} — {row.type === "wordle" ? "Wordle" : "Word Search"}</span>
+          <span>{savedActivityLabel({ ...row, listTitle: list.title })} — {row.type === "wordle" ? "Wordle" : "Word Search"}</span>
           <Link href={`/${row.type}?activity=${encodeURIComponent(row.id)}`}>Open {row.title} in builder</Link>
           <button onClick={() => run(async () => { const result = await storageRequest(`/configurations/${row.id}`); setActivity(result.data); setRevision((value) => value + 1); }, "Configuration loaded from the database.")}>Edit configuration {row.title}</button>
           <button onClick={() => setDeletion({ path: `/configurations/${row.id}`, label: `configuration ${row.title}` })}>Delete configuration {row.title}</button>

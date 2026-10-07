@@ -213,7 +213,8 @@ main {
   pointer-events: none;
   z-index: 5;
 }
-.kb-wrapper:hover .kb-hint, .kb-wrapper:focus-within .kb-hint { opacity: 1; }
+.kb-wrapper:not([data-hint-dismissed="true"]):hover .kb-hint,
+.kb-wrapper:not([data-hint-dismissed="true"]) .kb-button:focus-visible + .kb-hint { opacity: 1; }
 
 .ws-wordlist { margin-bottom: var(--space-2); }
 .ws-word-items { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; }

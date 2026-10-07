@@ -7,6 +7,8 @@ import { storageRequest } from "@/lib/api/storage";
 import { downloadHtml } from "@/lib/export/download";
 import WordlePreview from "@/components/wordle/WordlePreview";
 import WordSearchGrid from "@/components/wordsearch/WordSearchGrid";
+import { savedActivityLabel } from "@/lib/activity-labels";
+import SavedActivityDetails from "./SavedActivityDetails";
 import styles from "./SavedActivityPanel.module.css";
 
 export default function SavedActivityPanel({ type }) {
@@ -67,12 +69,12 @@ function SavedActivityWorkspace({ type, initialId }) {
 
   return <section className={styles.panel} aria-label={`Saved ${label} activities`}>
     <h1>{label} from saved content</h1>
-    <p>Create or edit words and settings in the <Link href="/library">Teacher Library</Link>, then select a saved configuration here.</p>
-    <label htmlFor={`saved-${type}`}>Saved {label} configuration</label>
+    <p>Select a saved activity, not a word list. Each activity has its own title and settings and uses a source word list from the <Link href="/library">Teacher Library</Link>.</p>
+    <label htmlFor={`saved-${type}`}>Saved {label} activity</label>
     <select id={`saved-${type}`} value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
-      <option value="">Choose a saved configuration</option>
-      {selectedId && !choices.some(({ id }) => id === selectedId) && <option value={selectedId}>Linked configuration</option>}
-      {choices.map((row) => <option key={row.id} value={row.id}>{row.title} — {row.listTitle}</option>)}
+      <option value="">Choose a saved {label} activity</option>
+      {selectedId && !choices.some(({ id }) => id === selectedId) && <option value={selectedId}>{saved ? savedActivityLabel({ ...saved, listTitle: saved.wordList.title }) : "Linked activity (loading details)"}</option>}
+      {choices.map((row) => <option key={row.id} value={row.id}>{savedActivityLabel(row)}</option>)}
     </select>
     <div className={styles.actions}>
       <button disabled={indexBusy} onClick={() => loadChoices()}>Refresh saved choices</button>
@@ -92,12 +94,10 @@ function SavedActivityWorkspace({ type, initialId }) {
     {downloadStatus?.key === requestKey && <p role="status">Download requested: {downloadStatus.filename}</p>}
     {saved && <div className={styles.snapshot}>
       <div>
-        <h2>{saved.title}</h2>
-        <p>List: {saved.wordList.title}</p>
+        <SavedActivityDetails saved={saved} />
         <p>Output: {activity.filename} · {saved.outputTheme} theme · hints {saved.showHints ? "on" : "off"}</p>
         <p>{type === "wordle" ? `${saved.maxGuesses} guesses` : `${saved.gridSize} × ${saved.gridSize} · ${saved.difficulty}`}</p>
         <p>List saved: {saved.wordList.updatedAt}<br />Settings saved: {saved.updatedAt}</p>
-        <ul aria-label="Saved words">{saved.wordList.words.map((word) => <li key={word.id}>/{word.phonemes.join(" ")}/ — {word.englishWord || "Untitled word"}</li>)}</ul>
         <Link href="/library">Edit saved content in Library</Link>
       </div>
       <section aria-label="Saved activity preview" className={styles.game} data-theme={saved.outputTheme}>

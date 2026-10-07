@@ -36,13 +36,18 @@ standalone server. Rebuild after code changes; production has no hot reload.
 2. Add words using the phoneme keyboard, with optional English text and hints.
    Each word contains 1–15 complete tokens, including symbols such as `tʃ` and
    `eː`. A list holds up to 30 words.
-3. Create a Wordle configuration (answer and 3–8 guesses) or Word Search
+3. Create a Wordle configuration (one selected answer and 3–8 guesses) or Word Search
    configuration (6–15 grid, easy/hard difficulty). Save title, hints, theme and
    HTML filename.
 4. Use **Open … in builder** to load a configuration from the database.
 5. Play the preview and use **Download saved …**. Preview and download share
    the same snapshot; a Word Search export contains exactly the displayed grid.
 6. After editing stored content, use **Reload and regenerate** in the builder.
+
+A word list is reusable content; an activity configuration has its own title and
+game settings. Several activities can use the same list. Saved activity menus
+label both names. The teacher Wordle summary identifies its one selected answer;
+other source-list words are not alternative answers. Word Search uses all list words.
 
 Only saved changes survive reload. Switching lists/editors discards unsaved
 drafts. Delete controls require confirmation; deleting a list also deletes its
@@ -77,8 +82,8 @@ npm run check
 npm run test:docker
 ```
 
-`check` runs lint, a production build, client-error checks, database checks and
-HTTP regressions. Tests default to isolated data and temporary servers; they do
+`check` runs lint, a production build, client-error and UI-behavior checks,
+database checks and HTTP regressions. Tests use isolated data and temporary servers; they do
 not overwrite the teacher database. See [testing](docs/testing.md).
 
 The application is a local classroom prototype, not an authenticated multi-user

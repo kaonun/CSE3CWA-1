@@ -42,7 +42,7 @@
   z-index: 5;
 }
 
-.wrapper:hover .hint,
-.wrapper:focus-within .hint {
+.wrapper:not([data-hint-dismissed="true"]):hover .hint,
+.wrapper:not([data-hint-dismissed="true"]) .button:focus-visible + .hint {
   opacity: 1;
 }

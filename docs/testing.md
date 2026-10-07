@@ -14,14 +14,18 @@ The command stops on the first failed stage:
 2. Next.js builds standalone production output and browser assets.
 3. Client-error checks mock failed/malformed responses, cancellation and timeouts;
    they verify readable messages and no automatic write retries.
-4. Database checks migrate an empty temporary database, exercise constraints,
+4. UI-behavior checks exercise component tooltip event state and rendered
+   teacher-summary markup, including the single selected Wordle answer. These
+   are not browser layout or real pointer/focus checks.
+5. Database checks migrate an empty temporary database, exercise constraints,
    then restart in a fresh process and verify ordered data/persistence.
-5. HTTP checks start an isolated production server with disposable SQLite storage,
+6. HTTP checks start an isolated production server with disposable SQLite storage,
    exercising pages/assets, health, CRUD, pagination, validation, concurrent
    writes, saved generation, export safety and offline runtime gameplay.
 
 Individual commands are `npm run lint`, `npm run build`,
-`npm run test:client-errors`, `npm run test:database` and `npm run test:backend`.
+`npm run test:client-errors`, `npm run test:ui-behavior`, `npm run test:database`
+and `npm run test:backend`.
 Build before running the backend checks. `npm run start` also requires a build
 and reports that requirement before creating/migrating storage when files are absent.
 
@@ -70,6 +74,10 @@ The helper prints an ephemeral URL backed by a temporary database. Keep its
 terminal open and enter `stop` to stop it and remove only its disposable data.
 Use that URL to test forms, errors, reload persistence, keyboard interactions,
 saved previews/downloads, and narrow/wide layouts without touching teacher data.
+Check phoneme hints with mouse and keyboard: hovering or tabbing onto a key
+shows its hint, activation/Escape dismisses it without losing focus, moving away
+after a click leaves no lingering hint, and returning to/focusing the key shows
+it again. Download a fresh Wordle HTML file to check the same behavior offline.
 
 Set `PREVIEW_SAVED_FIXTURES=1` before starting the helper to seed disposable
 configurations for both games. It prints configuration links, export paths and

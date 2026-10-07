@@ -20,6 +20,7 @@ class Element {
   setAttribute(key, value) { this.attributes.set(key, String(value)); }
   getAttribute(key) { return this.attributes.get(key) ?? null; }
   addEventListener(event, callback) { this.listeners.set(event, callback); }
+  dispatch(event, payload = {}) { this.listeners.get(event)?.(payload); }
   click() { assert.ok(!this.disabled && !this.hidden, "Cannot click a disabled/hidden control"); this.listeners.get("click")?.(); }
 }
 
@@ -47,6 +48,26 @@ function wordle(html) {
   const get = (id) => elements.get(id);
   const buttons = descendants(get("keyboard")).filter((element) => element.tagName === "BUTTON");
   assert.equal(buttons.length, 43);
+  // Exercise actual exported event handlers; CSS/browser focus is a separate
+  // manual check. There must not be a second, native title tooltip on the keys.
+  assert.ok(buttons.every((button) => !button.title));
+  const wrapper = descendants(get("keyboard")).find((element) => element.className === "kb-wrapper");
+  const key = wrapper.children[0];
+  wrapper.dispatch("pointerenter"); key.dispatch("focus");
+  assert.equal(wrapper.getAttribute("data-hint-dismissed"), "false");
+  key.dispatch("keydown", { key: "Escape" });
+  assert.equal(wrapper.getAttribute("data-hint-dismissed"), "true");
+  wrapper.dispatch("pointerenter"); key.dispatch("keydown", { key: "ArrowRight" });
+  assert.equal(wrapper.getAttribute("data-hint-dismissed"), "false");
+  key.click(); assert.equal(wrapper.getAttribute("data-hint-dismissed"), "true");
+  get("clear-btn").click();
+  key.dispatch("focus"); assert.equal(wrapper.getAttribute("data-hint-dismissed"), "false");
+  if (config.showHints) {
+    assert.equal(key.getAttribute("aria-describedby"), wrapper.children[1].id);
+  } else {
+    assert.equal(key.getAttribute("aria-describedby"), null);
+    assert.equal(wrapper.children.length, 1);
+  }
   function select(symbol) {
     const button = buttons.find((element) => element.getAttribute("aria-label") === `Phoneme /${symbol}/`);
     assert.ok(button, `Missing complete-token key ${symbol}`); button.click();
@@ -80,7 +101,7 @@ function wordle(html) {
   assert.match(get("status").textContent, /Out of guesses/);
   assert.ok(get("status").textContent.includes(config.englishWord || "(not set)"));
   get("reset-btn").click(); assert.match(get("status").textContent, /currently 0/);
-  return "Wordle: complete-token keyboard, length controls, hints, win/loss/reset and scoring passed without network APIs.";
+  return "Wordle: complete-token keyboard, tooltip dismissal events, length controls, hints, win/loss/reset and scoring passed without network APIs.";
 }
 
 function wordsearch(html) {

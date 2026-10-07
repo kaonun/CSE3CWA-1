@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import { formatPhoneme, hintFor } from "@/data/phonemes";
 import styles from "./PhonemeButton.module.css";
 
@@ -11,16 +11,24 @@ export default function PhonemeButton({
   showHint = true,
 }) {
   const hintId = useId();
+  const [hintDismissed, setHintDismissed] = useState(false);
 
   return (
-    <span className={styles.wrapper}>
+    <span className={styles.wrapper} data-hint-dismissed={hintDismissed}
+      onPointerEnter={() => setHintDismissed(false)}>
       <button
         type="button"
         className={styles.button}
         aria-label={`Phoneme ${formatPhoneme(symbol)}`}
         aria-describedby={showHint ? hintId : undefined}
         disabled={disabled}
-        onClick={() => onClick?.(symbol)}
+        onFocus={() => setHintDismissed(false)}
+        onKeyDown={(event) => { if (event.key === "Escape") setHintDismissed(true); }}
+        onClick={() => {
+          // Dismiss the hint without blurring the key or disrupting keyboard use.
+          setHintDismissed(true);
+          onClick?.(symbol);
+        }}
       >
         {formatPhoneme(symbol)}
       </button>
