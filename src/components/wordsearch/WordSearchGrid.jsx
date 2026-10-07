@@ -32,7 +32,7 @@ function cellsMatchPlacement(start, end, placement) {
   return forward || backward;
 }
 
-export default function WordSearchGrid({ grid, placements, failed }) {
+export default function WordSearchGrid({ grid, placements, failed, showHints = true }) {
   const [foundIndices, setFoundIndices] = useState([]);
   const [selectionStart, setSelectionStart] = useState(null);
 
@@ -95,9 +95,9 @@ export default function WordSearchGrid({ grid, placements, failed }) {
                 type="button"
                 className={`${styles.cell} ${isSelected ? styles.selected : ""} ${isFound ? styles.found : ""}`}
                 onClick={() => handleCellClick(r, c)}
-                aria-label={describePhoneme(symbol)}
+                aria-label={showHints ? describePhoneme(symbol) : `Phoneme /${symbol}/`}
                 aria-pressed={isFound}
-                title={hintFor(symbol)}
+                title={showHints ? hintFor(symbol) : undefined}
               >
                 {symbol}
               </button>

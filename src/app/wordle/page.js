@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import SavedActivityPanel from "@/components/builder/SavedActivityPanel";
 import BuilderLayout from "@/components/builder/BuilderLayout";
 import SettingsField from "@/components/builder/SettingsField";
 import GenerateButton from "@/components/builder/GenerateButton";
@@ -139,5 +140,11 @@ export default function WordlePage() {
     </section>
   );
 
-  return <BuilderLayout controls={controls} preview={preview} />;
+  return <>
+    <Suspense fallback={<p role="status">Loading saved activities…</p>}><SavedActivityPanel type="wordle" /></Suspense>
+    <details><summary>Temporary Wordle editor (not saved)</summary>
+      <p>This editor does not change the Library. Its download uses temporary values and your current theme.</p>
+      <BuilderLayout controls={controls} preview={preview} />
+    </details>
+  </>;
 }

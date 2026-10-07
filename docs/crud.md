@@ -1,5 +1,9 @@
 # Step 5: teacher-facing CRUD
 
+This records the Step 5 checkpoint. Step 6 now connects the saved records to both
+activity builders; see [the current saved-generation workflow](saved-generation.md).
+References below to generation being pending describe the Step 5 state.
+
 ## Scope
 
 The Teacher Library at `/library` implements create/read/update/delete for word

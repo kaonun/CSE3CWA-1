@@ -21,6 +21,7 @@ export function wordsearchTemplate(config) {
   "use strict";
   var PHONEMES = ${safeJsonForScript(PHONEMES)};
   var CONFIG = ${safeJsonForScript(config)};
+  if (CONFIG.title) document.querySelector(".page-header h1").textContent = CONFIG.title;
 
   function bySymbol(sym) {
     for (var i = 0; i < PHONEMES.length; i++) {
@@ -88,6 +89,10 @@ export function wordsearchTemplate(config) {
       var li = document.createElement("li");
       li.className = "ws-word" + (foundIndices.indexOf(index) !== -1 ? " found" : "");
       li.textContent = formatPhonemeWord(p.word);
+      if (CONFIG.showHints !== false) {
+        if (p.englishWord) li.textContent += " — " + p.englishWord;
+        if (p.hint) li.textContent += " · " + p.hint;
+      }
       ul.appendChild(li);
     });
     wordlistEl.appendChild(ul);
@@ -117,8 +122,8 @@ export function wordsearchTemplate(config) {
         if (isFound) className += " found";
         btn.className = className;
         btn.textContent = p.symbol;
-        btn.title = hintFor(symbol);
-        btn.setAttribute("aria-label", describePhoneme(symbol));
+        if (CONFIG.showHints !== false) btn.title = hintFor(symbol);
+        btn.setAttribute("aria-label", CONFIG.showHints === false ? "Phoneme " + formatPhoneme(symbol) : describePhoneme(symbol));
         btn.setAttribute("aria-pressed", isFound ? "true" : "false");
         btn.addEventListener("click", function () {
           handleCellClick(r, c);

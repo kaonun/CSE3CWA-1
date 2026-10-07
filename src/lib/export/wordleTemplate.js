@@ -29,6 +29,7 @@ export function wordleTemplate(config) {
   var PHONEMES = ${safeJsonForScript(PHONEMES)};
   var KEYBOARD_ROWS = ${safeJsonForScript(KEYBOARD_ROWS)};
   var CONFIG = ${safeJsonForScript(config)};
+  if (CONFIG.title) document.querySelector(".page-header h1").textContent = CONFIG.title;
 
   function bySymbol(sym) {
     for (var i = 0; i < PHONEMES.length; i++) {
@@ -277,6 +278,11 @@ export function wordleTemplate(config) {
         " \\u2014 guess needs " + CONFIG.answer.length + " phonemes (currently " +
         state.currentGuess.length + ")";
       statusEl.appendChild(p);
+      if (CONFIG.showHints && CONFIG.hint) {
+        var clue = document.createElement("p");
+        clue.textContent = "Hint: " + CONFIG.hint;
+        statusEl.appendChild(clue);
+      }
       resetBtn.hidden = true;
       keyboardEl.hidden = false;
       guessWordEl.hidden = false;

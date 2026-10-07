@@ -13,6 +13,7 @@ export default function WordlePreview({
   englishWord,
   maxGuesses,
   showHints,
+  hint = "",
 }) {
   const [currentGuess, setCurrentGuess] = useState([]);
   const [submittedGuesses, setSubmittedGuesses] = useState([]);
@@ -83,6 +84,7 @@ export default function WordlePreview({
           </p>
         )}
       </div>
+      {!gameOver && showHints && hint && <p>Hint: {hint}</p>}
 
       {gameOver ? (
         <button

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { storageRequest } from "@/lib/api/storage";
 import { ConfigurationForm, ListForm, WordForm } from "./LibraryForms";
 import styles from "./Library.module.css";
@@ -83,7 +84,7 @@ export default function Library() {
   return <div className={styles.library}>
     <h1>Teacher Library</h1>
     <p>Save word lists and multiple activity configurations. Only saved changes survive a reload. Switching lists or editors discards unsaved form changes.</p>
-    <p>Saved-data activity generation will be connected in Step 6. The existing builders remain available.</p>
+    <p>Open a saved configuration in its builder to preview and download an offline student activity using the database content.</p>
     <p role="status" aria-live="polite">{message}</p>
     {error && <p role="alert" className={styles.error}>{error}</p>}
     {deletion && <section className={styles.confirmation} aria-label="Confirm deletion">
@@ -115,6 +116,7 @@ export default function Library() {
         <h2>Activity configurations ({configurationTotal})</h2>
         <ul>{configurations.map((row) => <li key={row.id}>
           <span>{row.title} — {row.type === "wordle" ? "Wordle" : "Word Search"}</span>
+          <Link href={`/${row.type}?activity=${encodeURIComponent(row.id)}`}>Open {row.title} in builder</Link>
           <button onClick={() => run(async () => { const result = await storageRequest(`/configurations/${row.id}`); setActivity(result.data); setRevision((value) => value + 1); }, "Configuration loaded from the database.")}>Edit configuration {row.title}</button>
           <button onClick={() => setDeletion({ path: `/configurations/${row.id}`, label: `configuration ${row.title}` })}>Delete configuration {row.title}</button>
         </li>)}</ul>

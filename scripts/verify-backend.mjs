@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 import { runCrudChecks } from "./crud-checks.mjs";
+import { runSavedGenerationChecks } from "./saved-generation-checks.mjs";
 
 // Exercise the built application over HTTP, using only Node's standard library.
 // The temporary server binds to loopback and is always stopped on completion.
@@ -184,6 +185,7 @@ try {
     assert.equal((await fetch(`${base}/api/activities/generate`)).status, 405);
   });
   await runCrudChecks(base, check);
+  await runSavedGenerationChecks(base, check);
   if (temporary) {
     await check("database failure reports 503 without affecting application liveness", async () => {
       // A separate process avoids retaining Windows native-driver file handles

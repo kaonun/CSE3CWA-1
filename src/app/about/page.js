@@ -28,9 +28,9 @@ export default function AboutPage() {
           The builder now uses a server to prepare classroom activities.
           Downloaded HTML games still work offline. The Teacher Library stores
           word lists, words, hints, and multiple activity configurations in a
-          database. Generation from those saved configurations is the next
-          development step; the existing builders still use temporary editor
-          values that reset on refresh.
+          database. Both builders generate downloadable activities directly
+          from those saved configurations. Their separate temporary editors
+          remain available for unsaved experiments that reset on refresh.
         </p>
       </section>
 

@@ -173,3 +173,11 @@ passed all 47 normal HTTP checks before and after container replacement, plus
 configuration types retained their content on the same temporary test volume.
 See [the CRUD workflow and verification](crud.md). Verification removes only
 its own temporary container and labelled volume, never `teacher-data`.
+
+## Step 6 update
+
+The image now supports generation from saved configuration IDs for both activity
+types. All 61 normal HTTP checks passed before and after container replacement,
+including saved-data generation and offline-runtime gameplay; the 22 direct
+database checks also passed. Both saved outputs generated correctly from
+API-created data retained across replacement. See [saved-generation verification](saved-generation.md).

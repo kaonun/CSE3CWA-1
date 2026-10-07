@@ -6,7 +6,7 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** a
 
 ## Assessment 2 progress
 
-The inherited Next.js foundation is verified. Steps 2–4 add server-side generation, APIs, `/health`, Docker, and persistent SQLite/Drizzle storage. Step 5 implements the Teacher Library and CRUD for words, lists and multiple activity configurations. The required CRUD video evidence (5.4) remains for Step 8; generation from saved content is Step 6. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
+The inherited Next.js foundation is verified. Steps 2–5 add server-side generation, APIs, `/health`, Docker, persistent SQLite/Drizzle storage and teacher-facing CRUD. Step 6 now generates both activity types directly from saved configurations, with matching previews/downloads. The required CRUD video evidence (5.4) remains for Step 8. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
 
 - [Assessment 2 specification](Assignment2Specs.md)
 - [Baseline inspection, verification, and increment plan](docs/assessment-2-baseline.md)
@@ -14,6 +14,7 @@ The inherited Next.js foundation is verified. Steps 2–4 add server-side genera
 - [Step 3 Docker setup, local certificate trust, and verification](docs/docker.md)
 - [Step 4 database design, setup, and persistence verification](docs/database.md)
 - [Step 5 Library workflow, CRUD API, verification, and pending video evidence](docs/crud.md)
+- [Step 6 stored-data generation, downloads, verification, and manual offline check](docs/saved-generation.md)
 
 The original scaffold commit, `02f544d`, records creation with `create-next-app`. Assessment 2 continues that application and its Git history; running the starter again is unnecessary.
 
@@ -25,7 +26,7 @@ The original scaffold commit, `02f544d`, records creation with `create-next-app`
 - Playable Wordle preview with duplicate-aware two-pass scoring.
 - Word Search generation with configurable size and easy/hard placement rules.
 - One-click export to self-contained, offline `.html` activities.
-- Generated activities retain the teacher's active light or dark theme.
+- Saved activities use their configured light/dark output theme; temporary exports use the active interface theme.
 - Cookie-persisted light/dark theme with system-preference fallback.
 - Responsive layouts, visible focus styles, live status announcements, and non-colour-only game states.
 
@@ -106,8 +107,15 @@ Delete controls require confirmation; deleting an entire list also deletes its
 words and configurations. Selected Wordle answers are protected until their
 configuration is changed/deleted. See [the CRUD guide](docs/crud.md).
 
-Saved configurations are not yet connected to the activity builders: that
-workflow is Step 6. Existing builder editor values remain temporary.
+Use each saved configuration's **Open ... in builder** link to generate a
+preview from the database, then **Download saved ...**. Titles, content, settings,
+theme and filenames come from the saved records. After editing Library content,
+use **Reload and regenerate**. Preview and download share one snapshot; a Word
+Search download contains exactly the grid displayed. See [saved generation](docs/saved-generation.md).
+
+The original editors remain under **Temporary ... editor (not saved)** for
+experiments. They do not change the Library. The instructions below refer to
+those temporary editors; the primary saved workflow is described above.
 
 ### Wordle
 
@@ -144,6 +152,7 @@ The exact grid shown in the preview is embedded in the exported file, so student
 | `/health/database` | Database/inventory readiness, returning `200` or a generic `503` |
 | `/api/activities/generate` | POST validated Wordle/Word Search settings for server-generated activity output |
 | `/api/word-lists`, `/api/words`, `/api/configurations` | Saved-content CRUD; see the guide for supported methods and record routes |
+| `/api/configurations/:id/generate` | POST `{}` to generate HTML/preview from a consistent saved-data snapshot |
 
 ## Project structure
 
@@ -182,6 +191,6 @@ src/
 
 ## Assessment scope
 
-Steps 2–5 provide the backend, Docker runtime, persistent storage and teacher-facing CRUD. The Library saves/loads words, lists and multiple configurations. Both existing builders use the stateless generation API; their editor content still resets on refresh. Generation directly from stored configurations is Step 6. Startup seeds only the phoneme inventory, not hard-coded teacher lists. The About page identifies the existing walkthrough as the Assessment 1 video; new CRUD video evidence is still required.
+Steps 2–6 provide the backend, Docker runtime, persistent storage, teacher-facing CRUD and generation from saved configurations for both activity types. Temporary editors remain for unsaved experiments. Startup seeds only the phoneme inventory, not hard-coded teacher lists. Offline runtimes passed automated gameplay checks; direct local-file browser play remains a manual check because the in-app browser blocks `file:` URLs. The About page identifies the existing walkthrough as the Assessment 1 video; new video evidence is still required.
 
 Current development: [master](https://github.com/kaonun/CSE3CWA-1/tree/master). Original submission: [assessment-1](https://github.com/kaonun/CSE3CWA-1/tree/assessment-1).

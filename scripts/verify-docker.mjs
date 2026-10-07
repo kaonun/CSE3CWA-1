@@ -61,7 +61,7 @@ async function apiRequest(path, method = "GET", body) {
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const result = await response.json();
-  assert.equal(response.status, method === "POST" ? 201 : 200, JSON.stringify(result));
+  assert.equal(response.status, method === "POST" && !path.endsWith("/generate") ? 201 : 200, JSON.stringify(result));
   return result.data;
 }
 async function writeApiRecords() {
@@ -83,7 +83,13 @@ async function readApiRecords() {
   assert.equal(wordle.maxGuesses, 5); assert.equal(wordle.outputTheme, "dark"); assert.equal(wordle.outputFilename, "saved-wordle.html");
   const search = await apiRequest(`/configurations/${apiRecords.search.id}`);
   assert.equal(search.gridSize, 8); assert.equal(search.difficulty, "hard");
+  const generatedWordle = await apiRequest(`/configurations/${wordle.id}/generate`, "POST", {});
+  assert.equal(generatedWordle.filename, "saved-wordle.html");
+  assert.deepEqual(JSON.parse(generatedWordle.html.match(/var CONFIG = (.*);/)[1]).answer, ["tʃ", "eː"]);
+  const generatedSearch = await apiRequest(`/configurations/${search.id}/generate`, "POST", {});
+  assert.equal(generatedSearch.preview.grid.length, 8); assert.equal(generatedSearch.preview.placements.length, 1);
   console.log("PASS API-created words, edits and both configuration types survive container replacement.");
+  console.log("PASS both saved activity types generate from persisted API-created records after container replacement.");
 }
 
 try {
