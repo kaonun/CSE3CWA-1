@@ -7,7 +7,7 @@ import { storageRequest } from "@/lib/api/storage";
 import { downloadHtml } from "@/lib/export/download";
 import WordlePreview from "@/components/wordle/WordlePreview";
 import WordSearchGrid from "@/components/wordsearch/WordSearchGrid";
-import { savedActivityLabel } from "@/lib/activity-labels";
+import { libraryActivityHref, savedActivityLabel } from "@/lib/activity-labels";
 import SavedActivityDetails from "./SavedActivityDetails";
 import styles from "./SavedActivityPanel.module.css";
 
@@ -98,7 +98,7 @@ function SavedActivityWorkspace({ type, initialId }) {
         <p>Output: {activity.filename} · {saved.outputTheme} theme · hints {saved.showHints ? "on" : "off"}</p>
         <p>{type === "wordle" ? `${saved.maxGuesses} guesses` : `${saved.gridSize} × ${saved.gridSize} · ${saved.difficulty}`}</p>
         <p>List saved: {saved.wordList.updatedAt}<br />Settings saved: {saved.updatedAt}</p>
-        <Link href="/library">Edit saved content in Library</Link>
+        <Link href={libraryActivityHref(saved.id)}>Edit this activity configuration in Library</Link>
       </div>
       <section aria-label="Saved activity preview" className={styles.game} data-theme={saved.outputTheme}>
         <h2>Saved activity preview</h2>

@@ -14,8 +14,8 @@ The command stops on the first failed stage:
 2. Next.js builds standalone production output and browser assets.
 3. Client-error checks mock failed/malformed responses, cancellation and timeouts;
    they verify readable messages and no automatic write retries.
-4. UI-behavior checks exercise component tooltip event state and rendered
-   teacher-summary markup, including the single selected Wordle answer. These
+4. UI-behavior checks exercise component tooltip event state, teacher-summary
+   markup, Library deep links and retained configuration-save workflows. These
    are not browser layout or real pointer/focus checks.
 5. Database checks migrate an empty temporary database, exercise constraints,
    then restart in a fresh process and verify ordered data/persistence.
@@ -78,6 +78,10 @@ Check phoneme hints with mouse and keyboard: hovering or tabbing onto a key
 shows its hint, activation/Escape dismisses it without losing focus, moving away
 after a click leaves no lingering hint, and returning to/focusing the key shows
 it again. Download a fresh Wordle HTML file to check the same behavior offline.
+From each saved builder, use its Library edit link and confirm the matching list
+and configuration open at the editor. Save, then make a further edit: the editor
+should remain open, the inline Saved confirmation should clear, and a second save
+should update the same record. Configurations should not reorder after saves.
 
 Set `PREVIEW_SAVED_FIXTURES=1` before starting the helper to seed disposable
 configurations for both games. It prints configuration links, export paths and

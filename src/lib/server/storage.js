@@ -125,8 +125,9 @@ export function listConfigurations({ limit, offset, wordListId, type }) {
     const data = await tx.select({
       id: activityConfigurations.id, title: activityConfigurations.title, type: activityConfigurations.type,
       wordListId: activityConfigurations.wordListId, listTitle: wordLists.title, updatedAt: activityConfigurations.updatedAt,
+      createdAt: activityConfigurations.createdAt,
     }).from(activityConfigurations).innerJoin(wordLists, eq(activityConfigurations.wordListId, wordLists.id))
-      .where(filter).orderBy(desc(activityConfigurations.updatedAt), asc(activityConfigurations.id)).limit(limit).offset(offset);
+      .where(filter).orderBy(asc(activityConfigurations.createdAt), asc(activityConfigurations.id)).limit(limit).offset(offset);
     const [{ total }] = await tx.select({ total: sql`count(*)` }).from(activityConfigurations).where(filter);
     return { data, total, limit, offset };
   });

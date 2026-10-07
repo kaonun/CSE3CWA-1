@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PhonemeKeyboard from "@/components/phoneme/PhonemeKeyboard";
 import PhonemeWordDisplay from "@/components/phoneme/PhonemeWordDisplay";
+import styles from "./Library.module.css";
 
 export function ListForm({ list, save, cancel }) {
   const [title, setTitle] = useState(list?.title || "");
@@ -33,7 +34,7 @@ export function WordForm({ word, save, cancel }) {
   </form>;
 }
 
-export function ConfigurationForm({ activity, list, save, cancel }) {
+export function ConfigurationForm({ activity, list, save, cancel, saved = false, onChange }) {
   const [title, setTitle] = useState(activity?.title || "");
   const [type, setType] = useState(activity?.type || "wordle");
   const [answerWordId, setAnswer] = useState(activity?.answerWordId || list.words[0]?.id || "");
@@ -48,7 +49,7 @@ export function ConfigurationForm({ activity, list, save, cancel }) {
     save({ title, type, wordListId: list.id, showHints, outputTheme, outputFilename,
       ...(type === "wordle" ? { answerWordId, maxGuesses } : { gridSize, difficulty }) });
   }
-  return <form onSubmit={submit}>
+  return <form onSubmit={submit} onChange={onChange}>
     <h3>{activity ? "Edit activity configuration" : "New activity configuration"}</h3>
     <p>Source word list: {list.title}. The activity title below names this game, not the word list.</p>
     <label>Activity title<input required maxLength={120} value={title} onChange={(event) => setTitle(event.target.value)} /></label>
@@ -65,7 +66,10 @@ export function ConfigurationForm({ activity, list, save, cancel }) {
     <label>Output theme<select value={outputTheme} onChange={(event) => setTheme(event.target.value)}><option value="light">Light</option><option value="dark">Dark</option></select></label>
     <label>Output filename<input required maxLength={120} pattern="[A-Za-z0-9._-]+\.html" value={outputFilename} onChange={(event) => setFilename(event.target.value)} /></label>
     <p>Use letters, numbers, dots, underscores or hyphens, ending in .html.</p>
-    <button type="submit" disabled={!list.words.length}>{activity ? "Save configuration" : "Create configuration"}</button>
+    <div className={styles.saveActions}>
+      <button type="submit" disabled={!list.words.length}>{activity ? "Save configuration" : "Create configuration"}</button>
+      {saved && <span role="status" aria-live="polite" className={styles.saved}>Saved</span>}
+    </div>
     {activity && <button type="button" onClick={cancel}>Cancel configuration edit</button>}
   </form>;
 }

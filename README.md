@@ -49,6 +49,12 @@ game settings. Several activities can use the same list. Saved activity menus
 label both names. The teacher Wordle summary identifies its one selected answer;
 other source-list words are not alternative answers. Word Search uses all list words.
 
+**Edit this activity configuration in Library** opens the corresponding list and
+configuration editor directly. Activities are listed in creation order, oldest
+first; edits do not change that order. Saving leaves the editor open and displays
+**Saved** beside the button. Changing a field clears that confirmation until the
+next save. Closing/cancelling the editor discards only unsaved edits, not saved data.
+
 Only saved changes survive reload. Switching lists/editors discards unsaved
 drafts. Delete controls require confirmation; deleting a list also deletes its
 words and configurations. Selected Wordle answers cannot be deleted until their

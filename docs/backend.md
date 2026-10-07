@@ -46,6 +46,10 @@ Single-record responses are `{ "data": record }`. Collection responses are
 returns `{ "data": [] }` in stored order. Collection paging uses `limit`
 (default 50, range 1–100) and `offset` (0–1,000,000). Configurations may additionally
 filter by `wordListId` and `type=wordle|wordsearch`. Empty supplied filters are invalid.
+Configuration summaries include `createdAt` and `updatedAt` and are ordered by
+`createdAt` ascending, then stable ID ascending for equal timestamps. Editing
+changes `updatedAt`, not `createdAt` or the activity's position. This ordering is
+shared by the Library, builder menus and paginated/filtered configuration queries.
 
 List bodies contain required `title` (up to 120) and optional `description`
 (up to 1000). Word bodies contain required `phonemes` and optional

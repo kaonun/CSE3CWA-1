@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { storageRequest } from "@/lib/api/storage";
 import { ConfigurationForm, ListForm, WordForm } from "./LibraryForms";
 import { savedActivityLabel } from "@/lib/activity-labels";
 import styles from "./Library.module.css";
 
-export default function Library() {
+export default function Library({ initialActivityId = "" }) {
   const [lists, setLists] = useState([]);
   const [listTotal, setListTotal] = useState(0);
   const [list, setList] = useState(null);
@@ -16,6 +16,9 @@ export default function Library() {
   const [editList, setEditList] = useState(false);
   const [word, setWord] = useState(null);
   const [activity, setActivity] = useState(null);
+  const [configurationSaved, setConfigurationSaved] = useState(false);
+  const editorRef = useRef(null);
+  const linkedEditorFocused = useRef(false);
   const [revision, setRevision] = useState(0);
   const [deletion, setDeletion] = useState(null);
   const [busy, setBusy] = useState(true);
@@ -24,12 +27,31 @@ export default function Library() {
 
   useEffect(() => {
     const controller = new AbortController();
-    storageRequest("/word-lists", { signal: controller.signal }).then((result) => {
-      setLists(result.data); setListTotal(result.total); setMessage("Choose a list or create a new one.");
-    }).catch((error) => { if (!controller.signal.aborted) setError(error.message); })
+    async function load() {
+      const summaries = await storageRequest("/word-lists", { signal: controller.signal });
+      if (controller.signal.aborted) return;
+      setLists(summaries.data); setListTotal(summaries.total);
+      if (initialActivityId) {
+        const selected = await storageRequest(`/configurations/${encodeURIComponent(initialActivityId)}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
+        const configs = await storageRequest(`/configurations?wordListId=${encodeURIComponent(selected.data.wordListId)}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
+        setList(selected.data.wordList); setConfigurations(configs.data); setConfigurationTotal(configs.total);
+        setActivity(selected.data); setMessage("Linked activity configuration loaded for editing.");
+      } else setMessage("Choose a list or create a new one.");
+    }
+    load().catch((error) => { if (!controller.signal.aborted) { setMessage(""); setError(error.message); } })
       .finally(() => { if (!controller.signal.aborted) setBusy(false); });
     return () => controller.abort();
-  }, []);
+  }, [initialActivityId]);
+
+  useEffect(() => {
+    if (initialActivityId && activity?.id === initialActivityId && !linkedEditorFocused.current && editorRef.current) {
+      linkedEditorFocused.current = true;
+      editorRef.current.focus({ preventScroll: true });
+      editorRef.current.scrollIntoView({ block: "start" });
+    }
+  }, [initialActivityId, activity?.id]);
 
   async function refresh(id) {
     const summaries = await storageRequest("/word-lists?limit=100");
@@ -42,11 +64,11 @@ export default function Library() {
   async function run(action, success) {
     if (busy) return;
     setBusy(true); setError(""); setMessage("");
-    try { await action(); setMessage(success); }
-    catch (error) { setError(error.message); }
+    try { await action(); setMessage(success); return true; }
+    catch (error) { setError(error.message); return false; }
     finally { setBusy(false); }
   }
-  function resetEditors() { setWord(null); setActivity(null); setEditList(false); setDeletion(null); setRevision((value) => value + 1); }
+  function resetEditors() { setWord(null); setActivity(null); setConfigurationSaved(false); setEditList(false); setDeletion(null); setRevision((value) => value + 1); }
   function chooseList(id) {
     run(async () => { await refresh(id); resetEditors(); }, "List loaded from the database.");
   }
@@ -63,9 +85,14 @@ export default function Library() {
     }, word ? "Word updated in the database." : "Word added to the database.");
   }
   function saveConfiguration(body) {
-    run(async () => {
-      await storageRequest(activity ? `/configurations/${activity.id}` : "/configurations", { method: activity ? "PATCH" : "POST", body });
-      await refresh(list.id); setActivity(null); setRevision((value) => value + 1);
+    return run(async () => {
+      setConfigurationSaved(false);
+      const result = await storageRequest(activity ? `/configurations/${activity.id}` : "/configurations", { method: activity ? "PATCH" : "POST", body });
+      // Keep the saved identity immediately, even if the subsequent index refresh
+      // fails. In particular, the next save after creation must PATCH, not POST.
+      setActivity(result.data); setConfigurationSaved(true);
+      try { await refresh(list.id); }
+      catch (error) { throw new Error(`The configuration was saved, but the lists could not be refreshed. ${error.message}`); }
     }, activity ? "Activity configuration updated." : "Activity configuration created.");
   }
   function confirmDeletion() {
@@ -117,17 +144,20 @@ export default function Library() {
         </li>)}</ul>
         <WordForm key={`word-${list.id}-${word?.id}-${revision}`} word={word} save={saveWord} cancel={() => { setWord(null); setError(""); setRevision((value) => value + 1); }} />
         <h2>Activity configurations ({configurationTotal})</h2>
-        <p>These saved activities use the word list “{list.title}”. Their activity titles appear in the builders’ saved activity menus.</p>
+        <p>These saved activities use the word list “{list.title}”. Their activity titles appear in the builders’ saved activity menus. Activities stay in creation order (oldest first), even after edits.</p>
         <ul>{configurations.map((row) => <li key={row.id}>
           <span>{savedActivityLabel({ ...row, listTitle: list.title })} — {row.type === "wordle" ? "Wordle" : "Word Search"}</span>
           <Link href={`/${row.type}?activity=${encodeURIComponent(row.id)}`}>Open {row.title} in builder</Link>
-          <button onClick={() => run(async () => { const result = await storageRequest(`/configurations/${row.id}`); setActivity(result.data); setRevision((value) => value + 1); }, "Configuration loaded from the database.")}>Edit configuration {row.title}</button>
+          <button aria-pressed={activity?.id === row.id} onClick={() => run(async () => { const result = await storageRequest(`/configurations/${row.id}`); setActivity(result.data); setConfigurationSaved(false); setRevision((value) => value + 1); }, "Configuration loaded from the database.")}>Edit configuration {row.title}</button>
           <button onClick={() => setDeletion({ path: `/configurations/${row.id}`, label: `configuration ${row.title}` })}>Delete configuration {row.title}</button>
         </li>)}</ul>
         {configurations.length < configurationTotal && <button onClick={() => run(moreConfigurations, "More configurations loaded.")}>Load more configurations</button>}
         {!list.words.length && <p>Add a word before saving an activity configuration.</p>}
-        <ConfigurationForm key={`config-${list.id}-${activity?.id}-${revision}`} activity={activity} list={list} save={saveConfiguration}
-          cancel={() => { setActivity(null); setRevision((value) => value + 1); }} />
+        <section id="activity-editor" className={styles.editor} ref={editorRef} tabIndex={-1} aria-label="Activity configuration editor">
+          <ConfigurationForm key={`config-${list.id}-${activity?.id}-${revision}`} activity={activity} list={list} save={saveConfiguration}
+            saved={configurationSaved} onChange={() => setConfigurationSaved(false)}
+            cancel={() => { setActivity(null); setConfigurationSaved(false); setRevision((value) => value + 1); }} />
+        </section>
       </section> : <section className={styles.panel}><h2>No list selected</h2><p>Create or select a list to manage its words and activity configurations.</p></section>}
     </fieldset>
   </div>;

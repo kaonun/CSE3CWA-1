@@ -20,7 +20,7 @@ export async function runCrudChecks(base, check) {
     owned.add(data.id); return data;
   }
   const unique = randomUUID();
-  let list, other, first, second, wordle, search;
+  let list, other, first, second, wordle, search, configurationOrder;
   try {
     await check("CRUD creates independent lists with stable identities", async () => {
       list = await newList(`CRUD ${unique}`); other = await newList(`Other ${unique}`);
@@ -76,6 +76,20 @@ export async function runCrudChecks(base, check) {
       assert.equal(stored.outputFilename, "chair.html"); assert.equal(stored.showHints, false); assert.equal(stored.maxGuesses, 4);
       assert.deepEqual(stored.wordList.words[0].phonemes, ["tʃ", "eː"]);
     });
+    await check("CRUD configurations are listed oldest first with stable pagination and type filtering", async () => {
+      const rows = (await request(`/configurations?wordListId=${list.id}`)).data;
+      assert.ok(rows.every(({ createdAt }) => typeof createdAt === "string"));
+      const sorted = [...rows].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+      configurationOrder = rows.map(({ id }) => id);
+      assert.deepEqual(configurationOrder, sorted.map(({ id }) => id));
+      assert.equal(rows[0].createdAt, wordle.createdAt);
+      const pages = await Promise.all(rows.map((_, offset) => request(`/configurations?wordListId=${list.id}&limit=1&offset=${offset}`)));
+      assert.deepEqual(pages.flatMap(({ data }) => data.map(({ id }) => id)), configurationOrder);
+      assert.deepEqual((await request(`/configurations?wordListId=${list.id}&type=wordle`)).data.map(({ id }) => id), rows.filter(({ type }) => type === "wordle").map(({ id }) => id));
+      const linkedPage = await fetch(`${base}/library?activity=${wordle.id}`);
+      assert.equal(linkedPage.status, 200);
+      assert.ok((await linkedPage.text()).includes(wordle.id), "Library route must pass the linked configuration ID to its client workspace");
+    });
     await check("CRUD validates configuration fields and cross-list answers", async () => {
       const template = { title: "Invalid", wordListId: list.id, type: "wordle", answerWordId: first.id, maxGuesses: 6 };
       for (const override of [{ wordListId: other.id }, { maxGuesses: 2 }, { maxGuesses: 3.5 }, { showHints: "false" }, { outputTheme: "other" }, { outputFilename: "../bad.html" }, { gridSize: 6 }, { answerWordId: "missing" }, { type: "other" }]) await request("/configurations", "POST", { ...template, ...override }, 400);
@@ -90,6 +104,16 @@ export async function runCrudChecks(base, check) {
       assert.equal(saved.maxGuesses, 5); assert.equal(saved.outputTheme, "dark"); assert.equal(saved.outputFilename, "chair.html");
       await request(`/configurations/${search.id}`, "PATCH", { difficulty: "hard", gridSize: 8 });
       assert.equal((await request(`/configurations/${search.id}`)).data.difficulty, "hard");
+    });
+    await check("CRUD saving configurations preserves creation timestamps, positions and paginated order", async () => {
+      const rows = (await request(`/configurations?wordListId=${list.id}`)).data;
+      assert.deepEqual(rows.map(({ id }) => id), configurationOrder);
+      assert.equal(rows.find(({ id }) => id === wordle.id).createdAt, wordle.createdAt);
+      assert.equal(rows.find(({ id }) => id === search.id).createdAt, search.createdAt);
+      await request(`/configurations/${rows.at(-1).id}`, "PATCH", { title: "Edited last without reordering" });
+      assert.deepEqual((await request(`/configurations?wordListId=${list.id}`)).data.map(({ id }) => id), configurationOrder);
+      const pages = await Promise.all(rows.map((_, offset) => request(`/configurations?wordListId=${list.id}&limit=1&offset=${offset}`)));
+      assert.deepEqual(pages.flatMap(({ data }) => data.map(({ id }) => id)), configurationOrder);
     });
     await check("CRUD protects saved answers and grids from breaking word changes", async () => {
       await request(`/words/${first.id}`, "DELETE", undefined, 409);
