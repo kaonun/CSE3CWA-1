@@ -104,6 +104,11 @@ direct local-file browser play remains a manual check, not a claimed automated p
   storage/generation, and reusable token/game/export logic.
 - Recheck dependency/runtime updates deliberately; lockfile and Docker digest
   changes are part of reproducibility, not incidental formatting.
+- Run `npm audit --omit=dev` for runtime dependency advisories and `npm audit`
+  for development/build tools as well. Review compatible fixes, commit the updated
+  lockfile and rerun both quality gates; do not use forced upgrades or treat a clean
+  runtime audit as a complete security review. Keep tooling on trusted source and
+  do not expose development, migration or database inspection servers publicly.
 - Keep secrets, databases and local agent metadata untracked. Next.js may recreate
   ignored `AGENTS.md`/`CLAUDE.md` files during agent-assisted development.
 
