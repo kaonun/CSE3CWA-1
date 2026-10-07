@@ -1,8 +1,7 @@
 import "server-only";
-import { PHONEMES } from "@/data/phonemes";
+import { phonemeError } from "@/lib/phonemes/validation.mjs";
 import { ApiError } from "./http";
 
-const symbols = new Set(PHONEMES.map(({ symbol }) => symbol));
 export function requireInput(condition, message) {
   if (!condition) throw new ApiError(400, message);
 }
@@ -20,6 +19,7 @@ export function objectFields(value, fields, partial = false) {
 export function text(value, label, max, required = false) {
   requireInput(typeof value === "string" && value.length <= max && (!required || value.trim().length > 0),
     `${label} must be ${required ? "nonempty " : ""}text of up to ${max} characters.`);
+  requireInput(value.isWellFormed() && !value.includes("\u0000"), `${label} must contain valid Unicode text without null characters.`);
   return required ? value.trim() : value;
 }
 export function integer(value, min, max, label) {
@@ -37,10 +37,8 @@ export function validateWord(value, partial = false) {
   objectFields(value, ["phonemes", "englishWord", "hint"], partial);
   const output = {};
   if (!partial || value.phonemes !== undefined) {
-    requireInput(Array.isArray(value.phonemes) && value.phonemes.length >= 1 && value.phonemes.length <= 15,
-      "A word must contain 1–15 complete phoneme tokens.");
-    requireInput(value.phonemes.every((symbol) => typeof symbol === "string" && symbols.has(symbol)),
-      "Select supported phonemes from the keyboard; do not enter a raw phoneme string.");
+    const message = phonemeError(value.phonemes);
+    requireInput(!message, message);
     output.phonemes = [...value.phonemes];
   }
   for (const [key, label, max] of [["englishWord", "English word", 120], ["hint", "Word hint", 300]]) {

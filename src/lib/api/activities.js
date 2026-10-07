@@ -23,7 +23,14 @@ export async function requestActivity(activity, signal) {
     } catch {
       throw new Error("The activity service returned an unexpected response. Please try again.");
     }
+    if (!result || typeof result !== "object" || Array.isArray(result)) {
+      throw new Error("The activity service returned an unexpected response. Please try again.");
+    }
     if (!response.ok) throw new Error(result.error?.message || "Unable to generate the activity.");
+    if (typeof result.filename !== "string" || typeof result.html !== "string" ||
+      (activity.type === "wordsearch" && (!result.preview || !Array.isArray(result.preview.grid) || !Array.isArray(result.preview.placements)))) {
+      throw new Error("The activity service returned an unexpected response. Please try again.");
+    }
     return result;
   } finally {
     clearTimeout(timeout);

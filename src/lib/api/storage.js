@@ -6,8 +6,14 @@ export async function storageRequest(path, { method = "GET", body, signal } = {}
       ...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
     });
     if (response.status === 204) return null;
-    const result = await response.json();
+    let result;
+    try { result = await response.json(); }
+    catch { throw new Error("The saved-content service returned an unexpected response. Reload to check whether your change was saved before trying again."); }
+    if (!result || typeof result !== "object" || Array.isArray(result)) {
+      throw new Error("The saved-content service returned an unexpected response. Reload to check whether your change was saved before trying again.");
+    }
     if (!response.ok) throw new Error(result.error?.message || "The saved content could not be accessed.");
+    if (!("data" in result)) throw new Error("The saved-content service returned an unexpected response. Please reload saved content.");
     return result;
   } catch (error) {
     if (signal?.aborted) throw error;

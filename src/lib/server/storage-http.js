@@ -1,5 +1,6 @@
 import "server-only";
 import { ApiError } from "./http";
+import { StoredPhonemeError } from "../db/queries.mjs";
 
 export function storageResponse(data, status = 200) {
   return Response.json({ data }, { status, headers: { "Cache-Control": "no-store" } });
@@ -20,7 +21,7 @@ export function storageRoute(action) {
       return await action(request, context);
     } catch (error) {
       if (!(error instanceof ApiError)) console.error("Stored content request failed:", error);
-      return Response.json({ error: { message: error instanceof ApiError ? error.message : "Unable to access saved content. Please try again or check the database setup." } },
+      return Response.json({ error: { message: error instanceof ApiError || error instanceof StoredPhonemeError ? error.message : "Unable to access saved content. Please try again or check the database setup." } },
         { status: error instanceof ApiError ? error.status : 503, headers: { "Cache-Control": "no-store" } });
     }
   };

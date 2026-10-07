@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { activityConfigurations, wordLists, wordPhonemes, words } from "../db/schema.mjs";
-import { readActivityConfiguration, readWordList } from "../db/queries.mjs";
+import { readActivityConfiguration, readPhonemeTokens, readWordList } from "../db/queries.mjs";
 import { withDatabase } from "./database";
 import { ApiError } from "./http";
 import { CONFIGURATION_FIELDS, identifier, objectFields, requireInput, validateConfiguration, validateList, validateWord } from "./storage-validation";
@@ -20,7 +20,7 @@ async function wordRecord(tx, id) {
   const [word] = await tx.select().from(words).where(eq(words.id, identifier(id)));
   found(word, "Word");
   const tokens = await tx.select().from(wordPhonemes).where(eq(wordPhonemes.wordId, id)).orderBy(asc(wordPhonemes.position));
-  return { ...word, phonemes: tokens.map(({ symbol }) => symbol) };
+  return { ...word, phonemes: readPhonemeTokens(tokens) };
 }
 async function activityRecord(tx, id) {
   return found(await readActivityConfiguration(tx, identifier(id)), "Activity configuration");
@@ -116,8 +116,8 @@ export const deleteWord = (id) => atomic(async (tx) => {
 });
 
 export function listConfigurations({ limit, offset, wordListId, type }) {
-  if (wordListId) identifier(wordListId, "Word list ID");
-  if (type) requireInput(type === "wordle" || type === "wordsearch", "Choose Wordle or Word Search.");
+  if (wordListId != null) identifier(wordListId, "Word list ID");
+  if (type != null) requireInput(type === "wordle" || type === "wordsearch", "Choose Wordle or Word Search.");
   const filter = and(wordListId ? eq(activityConfigurations.wordListId, wordListId) : undefined,
     type ? eq(activityConfigurations.type, type) : undefined);
   return atomic(async (tx) => {

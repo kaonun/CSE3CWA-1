@@ -10,6 +10,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 import { runCrudChecks } from "./crud-checks.mjs";
 import { runSavedGenerationChecks } from "./saved-generation-checks.mjs";
+import { runValidationChecks } from "./validation-checks.mjs";
 
 // Exercise the built application over HTTP, using only Node's standard library.
 // The temporary server binds to loopback and is always stopped on completion.
@@ -186,7 +187,33 @@ try {
   });
   await runCrudChecks(base, check);
   await runSavedGenerationChecks(base, check);
+  await runValidationChecks(base, check);
   if (temporary) {
+    await check("damaged saved phonemes return safe 503s instead of shortened answers or broken UI data", async () => {
+      const fixture = (phase) => promisify(execFile)(process.execPath, ["scripts/corrupt-phoneme-fixture.mjs", phase], {
+        cwd: root, windowsHide: true, timeout: 10000,
+        env: { ...process.env, DATABASE_PATH: join(temporary, "verification.db") },
+      });
+      try {
+        await fixture("prepare");
+        for (const type of ["empty", "gap", "unknown"]) {
+          const id = `verify-corrupt-${type}`;
+          for (const path of [`/word-lists/${id}`, `/word-lists/${id}/words`, `/words/${id}`, `/configurations/${id}`, `/configurations/${id}/generate`]) {
+            const generation = path.endsWith("/generate");
+            const response = await fetch(`${base}/api${path}`, {
+              method: generation ? "POST" : "GET", headers: { "Content-Type": "application/json" },
+              ...(generation ? { body: "{}" } : {}), signal: AbortSignal.timeout(10000),
+            });
+            assert.equal(response.status, 503, path);
+            assert.equal(response.headers.get("cache-control"), "no-store");
+            const result = await response.json();
+            assert.deepEqual(result, { error: { message: "Saved phoneme data is incomplete or invalid. Check the database setup or restore a known-good backup." } });
+          }
+          assert.equal((await fetch(`${base}/health`)).status, 200);
+        }
+      } finally { await fixture("clean"); }
+      assert.equal((await fetch(`${base}/health/database`)).status, 200);
+    });
     await check("database failure reports 503 without affecting application liveness", async () => {
       // A separate process avoids retaining Windows native-driver file handles
       // in the test runner. Only its own isolated database is changed.

@@ -1,10 +1,8 @@
 import "server-only";
-import { PHONEMES } from "@/data/phonemes";
+import { phonemeError } from "@/lib/phonemes/validation.mjs";
 import { buildHtml } from "@/lib/export/buildHtml";
 import { generateWordSearch } from "@/lib/wordsearch/generate";
 import { ApiError } from "./http";
-
-const symbols = new Set(PHONEMES.map(({ symbol }) => symbol));
 
 function requireValue(condition, message) {
   if (!condition) throw new ApiError(400, message);
@@ -15,10 +13,8 @@ function isObject(value) {
 }
 
 function validateWord(word, label, maxLength) {
-  requireValue(Array.isArray(word) && word.length >= 1 && word.length <= maxLength,
-    `${label} must contain 1–${maxLength} phoneme tokens.`);
-  requireValue(word.every((token) => typeof token === "string" && symbols.has(token)),
-    `${label} contains an unsupported phoneme. Select symbols from the phoneme keyboard.`);
+  const message = phonemeError(word, label, maxLength);
+  requireValue(!message, message);
   return [...word];
 }
 

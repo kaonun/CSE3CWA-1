@@ -26,6 +26,7 @@ COPY --from=builder --chown=node:node /app/public ./public
 # Database bootstrap uses the same ORM/driver and tracked migrations as the app.
 COPY --from=builder --chown=node:node /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 COPY --from=builder --chown=node:node /app/src/lib/db ./src/lib/db
+COPY --from=builder --chown=node:node /app/src/lib/phonemes ./src/lib/phonemes
 COPY --from=builder --chown=node:node /app/src/data/phonemes.js ./src/data/phonemes.js
 COPY --from=builder --chown=node:node /app/drizzle ./drizzle
 COPY --from=builder --chown=node:node /app/scripts/migrate-database.mjs /app/scripts/start-container.mjs ./scripts/

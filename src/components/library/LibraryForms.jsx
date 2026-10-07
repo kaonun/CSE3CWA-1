@@ -25,6 +25,7 @@ export function WordForm({ word, save, cancel }) {
     <PhonemeWordDisplay word={phonemes} onRemoveAt={(index) => setPhonemes((tokens) => tokens.filter((_, i) => i !== index))}
       onBackspace={() => setPhonemes((tokens) => tokens.slice(0, -1))} onClear={() => setPhonemes([])} />
     <PhonemeKeyboard onSelect={(symbol) => setPhonemes((tokens) => tokens.length < 15 ? [...tokens, symbol] : tokens)} />
+    <p role="status">{phonemes.length === 0 ? "Select at least one phoneme before saving." : phonemes.length === 15 ? "15-token limit reached. Remove a phoneme before adding another." : `${phonemes.length}/15 phonemes selected.`}</p>
     <label>English word<input maxLength={120} value={englishWord} onChange={(event) => setEnglishWord(event.target.value)} /></label>
     <label>Word hint<input maxLength={300} value={hint} onChange={(event) => setHint(event.target.value)} /></label>
     <button type="submit" disabled={!phonemes.length}>{word ? "Save word" : "Add word to list"}</button>

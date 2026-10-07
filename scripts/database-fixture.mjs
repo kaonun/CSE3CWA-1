@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { eq, sql } from "drizzle-orm";
 import { openDatabase } from "../src/lib/db/connection.mjs";
-import { readActivityConfiguration, readWordList } from "../src/lib/db/queries.mjs";
+import { readActivityConfiguration, readPhonemeTokens, readWordList, StoredPhonemeError } from "../src/lib/db/queries.mjs";
 import { activityConfigurations, phonemes, wordLists, wordPhonemes, words } from "../src/lib/db/schema.mjs";
 
 // Used only by verification against its own empty temporary database/volume.
@@ -114,6 +114,13 @@ try {
     assert.equal(await count(wordLists), 0, "Failure fixture requires an empty teacher database");
     await db.delete(phonemes).where(eq(phonemes.symbol, "p"));
   } else if (process.argv[2] === "read") {
+    await check("stored-token reader rejects missing, gapped, reordered and unknown phonemes", async () => {
+      for (const rows of [[], [{ position: 1, symbol: "tʃ" }], [{ position: 0, symbol: "INVALID" }],
+        [{ position: 1, symbol: "eː" }, { position: 0, symbol: "tʃ" }]]) {
+        assert.throws(() => readPhonemeTokens(rows), StoredPhonemeError);
+      }
+      assert.deepEqual(readPhonemeTokens([{ position: 0, symbol: "tʃ" }, { position: 1, symbol: "eː" }]), ["tʃ", "eː"]);
+    });
     await check("lists, token order, repeated tokens and hint metadata survive restart", async () => {
       const list = await readWordList(db, "verify-list");
       assert.equal(list.title, "Affricates and repeated tokens");

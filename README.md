@@ -6,7 +6,7 @@ This project was created for CSE3CWA Assessment 1 by **Ali Mhanna (22550592)** a
 
 ## Assessment 2 progress
 
-The inherited Next.js foundation is verified. Steps 2–5 add server-side generation, APIs, `/health`, Docker, persistent SQLite/Drizzle storage and teacher-facing CRUD. Step 6 now generates both activity types directly from saved configurations, with matching previews/downloads. The required CRUD video evidence (5.4) remains for Step 8. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
+The inherited Next.js foundation is verified. Steps 2–5 add server-side generation, APIs, `/health`, Docker, persistent SQLite/Drizzle storage and teacher-facing CRUD. Step 6 generates both activity types directly from saved configurations, with matching previews/downloads. Step 7 audits and strengthens input validation, saved-phoneme integrity checks and clear error/recovery messages. The required CRUD video evidence (5.4) remains for Step 8. The course Dockerfile has not been supplied, so its exact lab-specific structure has not yet been compared.
 
 - [Assessment 2 specification](Assignment2Specs.md)
 - [Baseline inspection, verification, and increment plan](docs/assessment-2-baseline.md)
@@ -15,6 +15,7 @@ The inherited Next.js foundation is verified. Steps 2–5 add server-side genera
 - [Step 4 database design, setup, and persistence verification](docs/database.md)
 - [Step 5 Library workflow, CRUD API, verification, and pending video evidence](docs/crud.md)
 - [Step 6 stored-data generation, downloads, verification, and manual offline check](docs/saved-generation.md)
+- [Step 7 validation boundaries, error recovery, and verification](docs/validation.md)
 
 The original scaffold commit, `02f544d`, records creation with `create-next-app`. Assessment 2 continues that application and its Git history; running the starter again is unnecessary.
 
@@ -67,6 +68,7 @@ The development server uses hot reload, so saved changes appear automatically.
 ```bash
 npm run lint
 npm run build
+npm run test:client-errors
 npm run test:database
 npm run test:backend
 ```
@@ -191,6 +193,6 @@ src/
 
 ## Assessment scope
 
-Steps 2–6 provide the backend, Docker runtime, persistent storage, teacher-facing CRUD and generation from saved configurations for both activity types. Temporary editors remain for unsaved experiments. Startup seeds only the phoneme inventory, not hard-coded teacher lists. Offline runtimes passed automated gameplay checks; direct local-file browser play remains a manual check because the in-app browser blocks `file:` URLs. The About page identifies the existing walkthrough as the Assessment 1 video; new video evidence is still required.
+Steps 2–7 provide the backend, Docker runtime, persistent storage, teacher-facing CRUD, generation from saved configurations for both activity types, and audited validation/error handling. Temporary editors remain for unsaved experiments. Startup seeds only the phoneme inventory, not hard-coded teacher lists. Offline runtimes passed automated gameplay checks; direct local-file browser play remains a manual check because the in-app browser blocks `file:` URLs. The About page identifies the existing walkthrough as the Assessment 1 video; new video evidence is still required.
 
 Current development: [master](https://github.com/kaonun/CSE3CWA-1/tree/master). Original submission: [assessment-1](https://github.com/kaonun/CSE3CWA-1/tree/assessment-1).

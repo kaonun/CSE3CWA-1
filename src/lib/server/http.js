@@ -10,13 +10,13 @@ export class ApiError extends Error {
 const MAX_BODY_BYTES = 32 * 1024;
 
 export async function readJson(request) {
-  const mediaType = request.headers.get("content-type")?.split(";")[0].trim();
+  const mediaType = request.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
   if (mediaType !== "application/json") {
-    throw new ApiError(415, "Send activity data as application/json.");
+    throw new ApiError(415, "Send request data as application/json.");
   }
   // Bound the actual stream, including requests without Content-Length.
   const reader = request.body?.getReader();
-  if (!reader) throw new ApiError(400, "Activity data is required.");
+  if (!reader) throw new ApiError(400, "Request data is required.");
   const chunks = [];
   let length = 0;
   try {
@@ -26,7 +26,7 @@ export async function readJson(request) {
       length += value.byteLength;
       if (length > MAX_BODY_BYTES) {
         await reader.cancel();
-        throw new ApiError(413, "Activity data must be smaller than 32 KB.");
+        throw new ApiError(413, "Request data must be no larger than 32 KB.");
       }
       chunks.push(value);
     }
@@ -34,9 +34,11 @@ export async function readJson(request) {
     reader.releaseLock();
   }
   try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    // Do not silently substitute replacement characters for damaged IPA bytes.
+    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks));
+    return JSON.parse(decoded);
   } catch {
-    throw new ApiError(400, "Activity data must be valid JSON.");
+    throw new ApiError(400, "Request data must be valid UTF-8 JSON.");
   }
 }
 

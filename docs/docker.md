@@ -181,3 +181,12 @@ types. All 61 normal HTTP checks passed before and after container replacement,
 including saved-data generation and offline-runtime gameplay; the 22 direct
 database checks also passed. Both saved outputs generated correctly from
 API-created data retained across replacement. See [saved-generation verification](saved-generation.md).
+
+## Step 7 update
+
+The updated image includes the shared phoneme validator used by storage readers
+and generation. It passed all 72 normal HTTP check groups before and after
+container replacement, plus 23 direct database checks. Persisted API-created
+records still generate both activity types. The build-only CA remains absent
+from the non-root runtime. See [validation and error handling](validation.md)
+for the separate local damaged-data tests and client/browser recovery checks.
