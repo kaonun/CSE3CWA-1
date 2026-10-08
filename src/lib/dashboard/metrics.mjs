@@ -31,6 +31,8 @@ function summariseUsage(records) {
   let failed = 0;
   let pageViews = 0;
   let totalTimeSeconds = 0;
+  let simulatedRecords = 0;
+  let liveRecords = 0;
 
   for (const record of records) {
     const day = byDate.get(record.recordedDate) || {
@@ -46,6 +48,8 @@ function summariseUsage(records) {
     pageViews += record.pageViews;
     totalTimeSeconds += record.totalTimeSeconds;
     typeUsage[record.activityType] += record.pageViews;
+    if (record.simulated) simulatedRecords++;
+    else liveRecords++;
   }
 
   const weeklyUsage = [...byDate.values()].map((record) => ({
@@ -66,6 +70,9 @@ function summariseUsage(records) {
       ? Math.round(totalTimeSeconds / pageViews)
       : 0,
     typeUsage,
+    totalTimeSeconds,
+    simulatedRecords,
+    liveRecords,
   };
 }
 
@@ -93,6 +100,9 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
     updatedAt: formatUpdatedAt(activity.updatedAt),
     status: "Saved",
   }));
+  const mostUsedActivityType = usage.pageViews
+    ? Object.entries(usage.typeUsage).sort((left, right) => right[1] - left[1])[0][0]
+    : null;
 
   const alerts = snapshot.wordLists
     .filter((list) => list.wordCount === 0)
@@ -141,7 +151,9 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
 
   return {
     dataNote:
-      `${snapshot.usageMetrics.length} simulated daily/type records are persisted in SQLite; builder totals come from the same database.`,
+      databaseStatus === "connected"
+        ? `${usage.simulatedRecords} simulated and ${usage.liveRecords} live daily/type records are persisted in SQLite; builder totals come from the same database.`
+        : "Reporting and builder data are unavailable until the database connection recovers.",
     databaseStatus,
     metrics: [
       {
@@ -155,10 +167,10 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
       },
       {
         id: "successful",
-        label: "Successful generations",
-        value: usage.successful.toLocaleString("en-AU"),
-        detail: `${usage.totalGenerations ? ((usage.successful / usage.totalGenerations) * 100).toFixed(1) : "0.0"}% success rate`,
-        badge: "Persisted sample",
+        label: "Generated outputs",
+        value: usage.totalGenerations.toLocaleString("en-AU"),
+        detail: `${usage.successful} successful · ${usage.failed} failed`,
+        badge: "Persisted + live",
         tone: "green",
         icon: "check",
       },
@@ -202,6 +214,34 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
     recentActivities,
     recentActivitiesAreSimulated: false,
     alerts,
+    observability: {
+      activityConfigurations: {
+        total: snapshot.activities.length,
+        wordle: wordleCount,
+        wordsearch: wordSearchCount,
+      },
+      generations: {
+        total: usage.totalGenerations,
+        successful: usage.successful,
+        failed: usage.failed,
+        successRate: usage.totalGenerations
+          ? Number(((usage.successful / usage.totalGenerations) * 100).toFixed(1))
+          : 0,
+      },
+      pageUsage: {
+        views: usage.pageViews,
+        totalTimeSeconds: usage.totalTimeSeconds,
+        averageTimeSeconds: usage.averageTimeSeconds,
+        mostUsedActivityType,
+        byActivityType: usage.typeUsage,
+      },
+      reportingRecords: {
+        total: snapshot.usageMetrics.length,
+        simulated: usage.simulatedRecords,
+        live: usage.liveRecords,
+      },
+      alerts: alerts.map(({ severity, title }) => ({ severity, title })),
+    },
     wordListSummary: {
       totalLists: snapshot.wordLists.length,
       populatedLists,
@@ -256,6 +296,7 @@ async function readDashboardSnapshot() {
           totalTimeSeconds: usageMetrics.totalTimeSeconds,
           successfulGenerations: usageMetrics.successfulGenerations,
           failedGenerations: usageMetrics.failedGenerations,
+          simulated: usageMetrics.simulated,
         })
         .from(usageMetrics)
         .orderBy(asc(usageMetrics.recordedDate)),

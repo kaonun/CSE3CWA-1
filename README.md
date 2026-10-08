@@ -7,17 +7,21 @@ and download self-contained HTML files that students can play offline.
 ## Assessment 3 progress
 
 Assessment 3 builds directly on the completed frontend, API, SQLite, CRUD and
-Docker work from Assessment 2. Steps 1 and 2 add a responsive operational dashboard
+Docker work from Assessment 2. Steps 1–3 add a responsive operational dashboard
 at [http://localhost:3000/dashboard](http://localhost:3000/dashboard) with:
 
 - live word-list and activity-configuration totals from SQLite;
 - a persisted simulated week of generation, failure and time-on-page records;
+- live generation counters and bounded Wordle/Word Search page-duration telemetry;
 - an activity-type usage summary, alerts and word-list readiness;
-- links to the existing `/health` and `/health/database` monitoring endpoints.
+- visible links to `/health`, `/health/database` and `/health/metrics` monitoring outputs.
 
 The interface labels simulated records explicitly. Step 2 stores 14 daily/type
 aggregates in SQLite and derives success rate, average time, failure count and
 most-used activity type from those records on every dashboard request.
+Step 3 instruments real generation attempts and page usage without changing
+saved teacher content, while the metrics health endpoint provides a concise,
+machine-readable operational snapshot.
 
 Repository history is preserved by assessment branch: `assessment-1`,
 `assessment-2` and `assessment-3`. The `master` branch always represents the

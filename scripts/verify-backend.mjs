@@ -92,6 +92,21 @@ try {
     assert.equal(response.headers.get("cache-control"), "no-store");
     assert.deepEqual(await response.json(), { status: "ok", database: "sqlite" });
   });
+  await check("metrics health exposes the persisted observability snapshot", async () => {
+    const response = await fetch(`${base}/health/metrics`);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    const metrics = await response.json();
+    assert.equal(metrics.status, "ok");
+    assert.equal(metrics.database, "sqlite");
+    assert.deepEqual(metrics.activityConfigurations, { total: 0, wordle: 0, wordsearch: 0 });
+    assert.deepEqual(metrics.generations, { total: 261, successful: 251, failed: 10, successRate: 96.2 });
+    assert.equal(metrics.pageUsage.views, 261);
+    assert.equal(metrics.pageUsage.averageTimeSeconds, 186);
+    assert.equal(metrics.pageUsage.mostUsedActivityType, "wordle");
+    assert.deepEqual(metrics.reportingRecords, { total: 14, simulated: 14, live: 0 });
+    assert.match(metrics.generatedAt, /^\d{4}-\d{2}-\d{2}T/);
+  });
   await check("all existing frontend routes still render", async () => {
     for (const route of ["/", "/wordle", "/wordsearch", "/library", "/dashboard", "/about", "/settings"]) {
       const response = await fetch(base + route);
@@ -105,7 +120,35 @@ try {
     const page = await response.text();
     assert.match(page, /251/);
     assert.match(page, /10 failed generations/);
-    assert.match(page, /Persisted sample/);
+    assert.match(page, /Persisted \+ live/);
+  });
+  await check("page telemetry updates live time-on-page metrics", async () => {
+    const before = await (await fetch(`${base}/health/metrics`)).json();
+    const response = await fetch(`${base}/api/observability/page-view`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activityType: "wordle", durationSeconds: 90 }),
+    });
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    const invalid = await fetch(`${base}/api/observability/page-view`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activityType: "wordle", durationSeconds: 0 }),
+    });
+    assert.equal(invalid.status, 400);
+    const after = await (await fetch(`${base}/health/metrics`)).json();
+    assert.equal(after.pageUsage.views, before.pageUsage.views + 1);
+    assert.equal(after.pageUsage.totalTimeSeconds, before.pageUsage.totalTimeSeconds + 90);
+    assert.equal(after.reportingRecords.live, 1);
+  });
+  await check("successful and failed generation attempts increment live counters", async () => {
+    const before = await (await fetch(`${base}/health/metrics`)).json();
+    assert.equal((await post(wordle)).response.status, 200);
+    assert.equal((await post({ ...wordle, config: null })).response.status, 400);
+    const after = await (await fetch(`${base}/health/metrics`)).json();
+    assert.equal(after.generations.successful, before.generations.successful + 1);
+    assert.equal(after.generations.failed, before.generations.failed + 1);
   });
   await check("production browser scripts and styles are served", async () => {
     const page = await (await fetch(`${base}/wordle`)).text();

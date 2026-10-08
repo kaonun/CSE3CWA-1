@@ -21,6 +21,13 @@
   font-size: 0.78rem;
 }
 
+.statusLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
 .healthBadge,
 .sourceBadge,
 .metricBadge,

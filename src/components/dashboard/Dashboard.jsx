@@ -29,7 +29,7 @@ function GenerationChart({ data, totals }) {
       <div className={styles.panelHeader}>
         <div>
           <h2>Generation activity</h2>
-          <p>Successful and failed outputs from the persisted sample week</p>
+          <p>Successful and failed outputs by persisted reporting day</p>
         </div>
         <div className={styles.legend} aria-label="Chart legend">
           <span><i className={styles.successDot} />Successful</span>
@@ -48,8 +48,8 @@ function GenerationChart({ data, totals }) {
           {data.map((item) => (
             <div
               className={styles.barGroup}
-              key={item.day}
-              aria-label={`${item.day}: ${item.successful} successful and ${item.failed} failed`}
+              key={item.date}
+              aria-label={`${item.day} ${item.date}: ${item.successful} successful and ${item.failed} failed`}
             >
               <div className={styles.barTrack}>
                 <span
@@ -234,13 +234,23 @@ export default function Dashboard({ data }) {
     <div className={styles.dashboard}>
       <div className={styles.statusRow}>
         <p className={styles.dataNote}>{data.dataNote}</p>
-        <Link
-          className={`${styles.healthBadge} ${data.databaseStatus === "connected" ? styles.connected : styles.disconnected}`}
-          href="/health/database"
-        >
-          <span aria-hidden="true" />
-          Database {data.databaseStatus}
-        </Link>
+        <div className={styles.statusLinks} aria-label="Operational status endpoints">
+          <Link className={`${styles.healthBadge} ${styles.connected}`} href="/health">
+            <span aria-hidden="true" />Service online
+          </Link>
+          <Link
+            className={`${styles.healthBadge} ${data.databaseStatus === "connected" ? styles.connected : styles.disconnected}`}
+            href="/health/database"
+          >
+            <span aria-hidden="true" />Database {data.databaseStatus}
+          </Link>
+          <Link
+            className={`${styles.healthBadge} ${data.databaseStatus === "connected" ? styles.connected : styles.disconnected}`}
+            href="/health/metrics"
+          >
+            <span aria-hidden="true" />Metrics {data.databaseStatus === "connected" ? "reporting" : "unavailable"}
+          </Link>
+        </div>
       </div>
 
       <section className={styles.metrics} aria-label="Key performance indicators">

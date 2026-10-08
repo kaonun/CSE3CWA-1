@@ -25,6 +25,11 @@ usage_metrics (daily activity-type reporting aggregates)
   failed generations, simulated/live source flag and timestamps. The dashboard
   derives averages, rates and most-used type from these stored base values.
 
+Runtime instrumentation upserts at most one live row per UTC date and activity
+type. Generation attempts atomically increment success/failure fields; leaving a
+Wordle or Word Search page increments views and total duration. These reporting
+writes do not alter saved lists, words or activity configurations.
+
 Readers sort positions and reject missing, gapped or unsupported tokens.
 Database CHECK constraints protect settings shapes, lengths, booleans and names.
 Foreign keys protect ownership/inventory references. Deleting a list cascades its

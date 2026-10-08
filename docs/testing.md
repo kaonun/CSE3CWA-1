@@ -20,8 +20,9 @@ The command stops on the first failed stage:
 5. Database checks migrate an empty temporary database, exercise constraints,
    then restart in a fresh process and verify ordered data/persistence.
 6. HTTP checks start an isolated production server with disposable SQLite storage,
-   exercising pages/assets, health, CRUD, pagination, validation, concurrent
-   writes, saved generation, export safety and offline runtime gameplay.
+   exercising pages/assets, health and metrics outputs, live telemetry, CRUD,
+   pagination, validation, concurrent writes, saved generation, export safety
+   and offline runtime gameplay.
 
 Individual commands are `npm run lint`, `npm run build`,
 `npm run test:client-errors`, `npm run test:ui-behavior`, `npm run test:database`

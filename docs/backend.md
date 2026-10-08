@@ -17,6 +17,8 @@ requests, access SQLite through Drizzle, and generate offline HTML.
   supported and contiguous before being returned to the UI.
 - `saved-activities.js`: reads one configuration/list snapshot, then calls the
   shared activity generator outside the database connection lock.
+- `observability.js`: atomically increments live daily metrics without allowing
+  instrumentation failures to break an otherwise valid generation.
 - `src/lib/export/`: escaped titles, safely serialized script data and standalone
   HTML/CSS/JavaScript. Downloaded games have no API dependencies.
 
@@ -89,7 +91,8 @@ Duplicate word sequences retain independent IDs and metadata.
 
 The builders keep the generated snapshot until explicitly reloaded. Download
 uses exactly the same HTML as the preview response. Regenerating a Word Search
-creates a new layout. Generation is read-only and does not persist HTML files.
+creates a new layout. Generation does not mutate teacher content or persist HTML
+files; it records a successful or failed counter in the reporting table.
 
 ## Temporary generation and health
 
@@ -103,6 +106,13 @@ GET `/health` returns 200 and `{ "status": "ok", "service": "phonemele" }`.
 GET `/health/database` returns 200 and
 `{ "status": "ok", "database": "sqlite" }`, or generic 503 when schema/inventory
 readiness fails. This is not a full scan of every teacher word.
+
+GET `/health/metrics` returns the current activity-configuration counts,
+generation totals and success rate, page views, average time, most-used activity
+type, reporting-record sources and active alert summaries. Wordle and Word Search
+pages send a bounded duration observation to `/api/observability/page-view` when
+the page is left or hidden. Both endpoints are uncached; telemetry writes are
+same-origin, JSON-only and constrained to 1–86400 seconds.
 
 ## Validation and recovery
 

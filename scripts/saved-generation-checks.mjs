@@ -122,7 +122,7 @@ export async function runSavedGenerationChecks(base, check) {
         new Script(output.html.match(/<script>([\s\S]*)<\/script>/)[1]);
       }
     });
-    await check("concurrent saved generation is read-only and leaves storage unchanged", async () => {
+    await check("concurrent saved generation leaves teacher content unchanged", async () => {
       const before = await request(`/word-lists/${list.id}`);
       await Promise.all([generate(wordle.id), generate(search.id), generate(wordle.id), fetch(`${base}/health/database`).then((r) => assert.equal(r.status, 200))]);
       assert.deepEqual(await request(`/word-lists/${list.id}`), before);
