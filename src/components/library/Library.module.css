@@ -7,6 +7,8 @@
 .library button { font: inherit; cursor: pointer; padding: .4rem .65rem; margin: .25rem; background: var(--color-surface-muted); color: var(--color-ink); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
 .library button:disabled { cursor: default; opacity: .6; }
 .library button[aria-pressed="true"] { border: 2px solid var(--color-accent); }
+.library .wordSaveButton { min-height: 44px; background: var(--color-correct-bg); color: var(--color-correct-ink); border-color: var(--color-correct-bg); font-weight: 700; }
+.library .wordSaveButton:hover:not(:disabled) { filter: brightness(1.08); }
 .library ul { list-style: none; padding: 0; }
 .library li { padding: .5rem 0; border-bottom: 1px solid var(--color-border); overflow-wrap: anywhere; }
 .library li span { display: block; }

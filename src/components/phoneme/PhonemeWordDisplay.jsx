@@ -12,6 +12,7 @@ export default function PhonemeWordDisplay({
   onRemoveAt,
   onBackspace,
   onClear,
+  action,
 }) {
   return (
     <div className={styles.wrapper}>
@@ -62,6 +63,7 @@ export default function PhonemeWordDisplay({
         >
           Clear
         </button>
+        {action}
       </div>
     </div>
   );

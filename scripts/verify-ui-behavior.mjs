@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Script } from "node:vm";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as phonemes from "../src/data/phonemes.js";
-import { libraryActivityHref, savedActivityLabel } from "../src/lib/activity-labels.js";
+import { formatTimestamp, libraryActivityHref, savedActivityLabel } from "../src/lib/activity-labels.js";
 
 const require = createRequire(import.meta.url);
 const { loadBindings, transform } = require("next/dist/build/swc");
@@ -53,7 +53,7 @@ async function componentHarness(path, { imports = {}, exportName = "default" } =
       if (id === "react") return hooks;
       if (id === "@/data/phonemes") return phonemes;
       if (id in imports) return imports[id];
-      if (id.endsWith(".module.css")) return { wrapper: "wrapper", button: "button", hint: "hint", saveActions: "saveActions", saved: "saved", editor: "editor" };
+      if (id.endsWith(".module.css")) return { wrapper: "wrapper", button: "button", hint: "hint", saveActions: "saveActions", saved: "saved", editor: "editor", wordSaveButton: "wordSaveButton" };
       if (id === "react/jsx-runtime" || id.startsWith("@swc/helpers/")) return require(id);
       throw new Error(`Unexpected component dependency: ${id}`);
     },
@@ -96,6 +96,28 @@ const saved = { title: "testh", type: "wordle", answerWordId: "second", wordList
 await check("activity labels explicitly distinguish each activity from its shared word list", () => {
   assert.equal(savedActivityLabel({ title: "testh", listTitle: "Test" }), "Activity: testh — Word list: Test");
   assert.equal(savedActivityLabel({ title: "k", listTitle: "Test" }), "Activity: k — Word list: Test");
+});
+await check("saved timestamps use a concise day-first 24-hour format", () => {
+  assert.equal(formatTimestamp("2026-10-08T01:13:08.297Z", "UTC"), "08/10/2026 01:13");
+  assert.equal(formatTimestamp("not-a-date", "UTC"), "Unknown date");
+});
+await check("word save action is grouped with the phoneme editing controls", async () => {
+  const render = await componentHarness("../src/components/library/LibraryForms.jsx", {
+    exportName: "WordForm", imports: {
+      "@/components/phoneme/PhonemeKeyboard": { default: "PhonemeKeyboard", __esModule: true },
+      "@/components/phoneme/PhonemeWordDisplay": { default: "PhonemeWordDisplay", __esModule: true },
+    },
+  });
+  let tree = render({ save() {} });
+  let display = nodes(tree).find(({ type }) => type === "PhonemeWordDisplay");
+  assert.equal(display.props.action.type, "button");
+  assert.equal(display.props.action.props.className, "wordSaveButton");
+  assert.equal(display.props.action.props.disabled, true);
+  assert.equal(textIn(display.props.action), "Add word to list");
+  nodes(tree).find(({ type }) => type === "PhonemeKeyboard").props.onSelect("p");
+  tree = render({ save() {} });
+  display = nodes(tree).find(({ type }) => type === "PhonemeWordDisplay");
+  assert.equal(display.props.action.props.disabled, false);
 });
 await check("teacher Wordle summary identifies only the selected answer, even when it is not the first word", () => {
   const html = renderToStaticMarkup(renderDetails({ saved }));

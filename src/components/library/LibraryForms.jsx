@@ -24,12 +24,12 @@ export function WordForm({ word, save, cancel }) {
     <h3>{word ? "Edit word" : "Add word"}</h3>
     <p>Choose complete phoneme symbols in order (1–15 tokens).</p>
     <PhonemeWordDisplay word={phonemes} onRemoveAt={(index) => setPhonemes((tokens) => tokens.filter((_, i) => i !== index))}
-      onBackspace={() => setPhonemes((tokens) => tokens.slice(0, -1))} onClear={() => setPhonemes([])} />
+      onBackspace={() => setPhonemes((tokens) => tokens.slice(0, -1))} onClear={() => setPhonemes([])}
+      action={<button className={styles.wordSaveButton} type="submit" disabled={!phonemes.length}>{word ? "Save word" : "Add word to list"}</button>} />
     <PhonemeKeyboard onSelect={(symbol) => setPhonemes((tokens) => tokens.length < 15 ? [...tokens, symbol] : tokens)} />
     <p role="status">{phonemes.length === 0 ? "Select at least one phoneme before saving." : phonemes.length === 15 ? "15-token limit reached. Remove a phoneme before adding another." : `${phonemes.length}/15 phonemes selected.`}</p>
     <label>English word<input maxLength={120} value={englishWord} onChange={(event) => setEnglishWord(event.target.value)} /></label>
     <label>Word hint<input maxLength={300} value={hint} onChange={(event) => setHint(event.target.value)} /></label>
-    <button type="submit" disabled={!phonemes.length}>{word ? "Save word" : "Add word to list"}</button>
     {word && <button type="button" onClick={cancel}>Cancel word edit</button>}
   </form>;
 }
