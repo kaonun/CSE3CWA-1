@@ -209,7 +209,15 @@ function WordListReadiness({ summary }) {
         <div><h2>Word list readiness</h2><p>Stored vocabulary availability</p></div>
         <strong>{summary.completeness}%</strong>
       </div>
-      <div className={styles.progress} aria-label={`${summary.completeness}% of saved lists contain words`}>
+      <div
+        className={styles.progress}
+        role="progressbar"
+        aria-label="Saved word-list completeness"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={summary.completeness}
+        aria-valuetext={`${summary.completeness}% of saved lists contain words`}
+      >
         <span style={{ width: `${summary.completeness}%` }} />
       </div>
       <div className={styles.readinessStats}>

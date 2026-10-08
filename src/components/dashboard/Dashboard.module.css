@@ -428,10 +428,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .insight { background: #29233e; color: #c4b5ff; }
   :root:not([data-theme="light"]) .connected { background: #193424; color: #8ed3a3; }
+  :root:not([data-theme="light"]) .readinessHeader > strong { color: #b8a9f5; }
 }
 
 :root[data-theme="dark"] .insight { background: #29233e; color: #c4b5ff; }
 :root[data-theme="dark"] .connected { background: #193424; color: #8ed3a3; }
+:root[data-theme="dark"] .readinessHeader > strong { color: #b8a9f5; }
 
 @media (max-width: 900px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }

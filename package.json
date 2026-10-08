@@ -21,12 +21,14 @@
     "test:load": "node scripts/run-jmeter.mjs --stages=1",
     "test:load:staged": "node scripts/run-jmeter.mjs --stages=1,10,25,50,100",
     "test:load:full": "node scripts/run-jmeter.mjs --stages=1,10,100,1000,10000 --allow-high-load",
+    "test:accessibility": "node scripts/run-lighthouse.mjs",
+    "submission:zip": "node scripts/create-submission.mjs",
     "check": "npm run lint && npm run build && npm run test:client-errors && npm run test:ui-behavior && npm run test:database && npm run test:backend && npm run test:e2e:built"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",
     "drizzle-orm": "0.45.3",
-    "next": "16.3.6",
+    "next": "16.4.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -34,6 +36,7 @@
     "@playwright/test": "^1.64.0",
     "drizzle-kit": "0.31.11",
     "eslint": "^9",
-    "eslint-config-next": "16.3.6"
+    "eslint-config-next": "16.4.0",
+    "lighthouse": "^13.5.0"
   }
 }

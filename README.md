@@ -25,6 +25,10 @@ machine-readable operational snapshot.
 Step 4 adds Playwright browser tests for teacher CRUD and a solved/downloaded
 student Wordle, plus a parameterised JMeter plan and measured five-stage local
 production baseline.
+Step 5 audits the four primary routes with Lighthouse. The initial Dashboard
+score of 92 exposed progressbar semantics and dark-mode contrast issues; after
+those fixes, Dashboard, Library, Wordle and Word Search each score 100 in the
+automated accessibility category.
 
 Repository history is preserved by assessment branch: `assessment-1`,
 `assessment-2` and `assessment-3`. The `master` branch always represents the
@@ -114,13 +118,15 @@ See [Docker setup](docs/docker.md) for TLS-scanning networks and troubleshooting
 npm run check
 npm run test:docker
 npm run test:load:staged
+npm run test:accessibility
 ```
 
 `check` runs lint, a production build, client-error and UI-behavior checks,
 database checks, HTTP regressions and two Playwright browser workflows. Tests use
 isolated data and temporary servers; they do not overwrite the teacher database.
 JMeter requires a separately installed Apache JMeter 5.6.3 and a running local
-production server. See [testing](docs/testing.md).
+production server. Lighthouse requires a running local server and Chrome or
+Edge. See [testing](docs/testing.md).
 
 The application is a local classroom prototype, not an authenticated multi-user
 service. Keep it on loopback. Public deployment requires authentication,
@@ -133,6 +139,9 @@ authorization, trusted-proxy handling, backups and a concurrency policy.
 - [Docker runtime and certificate trust](docs/docker.md)
 - [Testing and troubleshooting](docs/testing.md)
 - [JMeter load-test method and baseline](docs/load-testing.md)
+- [Lighthouse accessibility method and results](docs/accessibility.md)
+- [Demonstration video guide](docs/video-guide.md)
+- [Final submission checklist](docs/submission-checklist.md)
 
 ```text
 src/app/          Pages and thin Next.js Route Handlers

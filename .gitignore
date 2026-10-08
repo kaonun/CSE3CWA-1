@@ -16,6 +16,9 @@
 /test-results/
 /jmeter/results/
 /jmeter.log
+/lighthouse/results/
+/.lighthouse-results/
+/submission/
 
 # next.js
 /.next/

@@ -123,6 +123,21 @@ security sandbox for arbitrary files. The automated test checks game logic, not
 browser rendering or accessibility. The in-app browser blocks `file:` URLs, so
 direct local-file browser play remains a manual check, not a claimed automated pass.
 
+## Lighthouse accessibility checks
+
+Start the local application, then run the four-route accessibility audit in a
+second terminal:
+
+```sh
+npm run dev
+npm run test:accessibility
+```
+
+The command writes viewable HTML reports and machine-readable JSON/CSV summaries
+to `lighthouse/results/<timestamp>/`. These generated reports are intentionally
+ignored by Git; the measured baseline and interpretation are documented in
+[`docs/accessibility.md`](accessibility.md).
+
 ## Maintenance checks
 
 - Start from a fresh source copy without `node_modules`, `.next`, local data or
