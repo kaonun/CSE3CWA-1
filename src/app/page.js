@@ -12,6 +12,13 @@ export default function Home() {
         server, no build step, no typing IPA.
       </p>
       <div className={styles.links}>
+        <Link href="/dashboard" className={styles.card}>
+          <h3>Dashboard</h3>
+          <p>
+            Monitor stored builder data, simulated usage metrics, alerts and
+            operational health.
+          </p>
+        </Link>
         <Link href="/wordle" className={styles.card}>
           <h3>Wordle</h3>
           <p>
