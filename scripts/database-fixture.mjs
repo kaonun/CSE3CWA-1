@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { eq, sql } from "drizzle-orm";
 import { openDatabase } from "../src/lib/db/connection.mjs";
 import { readActivityConfiguration, readPhonemeTokens, readWordList, StoredPhonemeError } from "../src/lib/db/queries.mjs";
-import { activityConfigurations, phonemes, wordLists, wordPhonemes, words } from "../src/lib/db/schema.mjs";
+import { activityConfigurations, phonemes, usageMetrics, wordLists, wordPhonemes, words } from "../src/lib/db/schema.mjs";
 
 // Used only by verification against its own empty temporary database/volume.
 // Refuse to write fixtures into any database that already contains teacher lists.
@@ -36,8 +36,28 @@ try {
     assert.equal(await count(wordLists), 0, "Fixture writer requires an empty teacher database");
     await check("migrated schema, inventory and foreign keys are ready", async () => {
       assert.equal(await count(phonemes), 43);
+      assert.equal(await count(usageMetrics), 14);
       assert.equal((await client.execute("PRAGMA foreign_keys")).rows[0].foreign_keys, 1);
       assert.equal((await client.execute("PRAGMA journal_mode")).rows[0].journal_mode, "wal");
+    });
+    await check("reject invalid and duplicate reporting aggregates", async () => {
+      const valid = {
+        recordedDate: "2026-10-05",
+        activityType: "wordle",
+        pageViews: 2,
+        totalTimeSeconds: 240,
+        successfulGenerations: 2,
+        failedGenerations: 0,
+      };
+      for (const [id, values] of [
+        ["invalid-usage-type", { ...valid, activityType: "other" }],
+        ["invalid-usage-failures", { ...valid, failedGenerations: -1 }],
+        ["invalid-usage-duration", { ...valid, totalTimeSeconds: 1 }],
+        ["duplicate-usage-aggregate", { ...valid, recordedDate: "2026-09-28" }],
+      ]) {
+        await rejectsConstraint(() => db.insert(usageMetrics).values({ id, ...values }));
+      }
+      assert.equal(await count(usageMetrics), 14);
     });
     await check("store lists, words and ordered complete phoneme tokens atomically", async () => {
       await db.transaction(async (tx) => {
@@ -114,6 +134,14 @@ try {
     assert.equal(await count(wordLists), 0, "Failure fixture requires an empty teacher database");
     await db.delete(phonemes).where(eq(phonemes.symbol, "p"));
   } else if (process.argv[2] === "read") {
+    await check("reporting metrics survive restart and retain exact aggregates", async () => {
+      const records = await db.select().from(usageMetrics);
+      assert.equal(records.length, 14);
+      assert.equal(records.reduce((total, row) => total + row.pageViews, 0), 261);
+      assert.equal(records.reduce((total, row) => total + row.successfulGenerations, 0), 251);
+      assert.equal(records.reduce((total, row) => total + row.failedGenerations, 0), 10);
+      assert.ok(records.every((row) => row.simulated));
+    });
     await check("stored-token reader rejects missing, gapped, reordered and unknown phonemes", async () => {
       for (const rows of [[], [{ position: 1, symbol: "tʃ" }], [{ position: 0, symbol: "INVALID" }],
         [{ position: 1, symbol: "eː" }, { position: 0, symbol: "tʃ" }]]) {

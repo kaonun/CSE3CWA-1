@@ -1,50 +1,11 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { openDatabase } from "@/lib/db/connection.mjs";
 import {
   activityConfigurations,
+  usageMetrics,
   wordLists,
   words,
 } from "@/lib/db/schema.mjs";
-
-const weeklyUsage = [
-  { day: "Mon", successful: 29, failed: 1 },
-  { day: "Tue", successful: 34, failed: 2 },
-  { day: "Wed", successful: 41, failed: 1 },
-  { day: "Thu", successful: 36, failed: 0 },
-  { day: "Fri", successful: 45, failed: 3 },
-  { day: "Sat", successful: 33, failed: 2 },
-  { day: "Sun", successful: 33, failed: 1 },
-];
-
-const simulatedActivities = [
-  {
-    id: "sample-wordle-short-a",
-    title: "Short A challenge",
-    type: "wordle",
-    wordListTitle: "Short A starters",
-    difficulty: "Beginner",
-    updatedAt: "Sample record",
-    status: "Monitored",
-  },
-  {
-    id: "sample-search-blends",
-    title: "Blend finder grid",
-    type: "wordsearch",
-    wordListTitle: "Consonant blends",
-    difficulty: "Intermediate",
-    updatedAt: "Sample record",
-    status: "Healthy",
-  },
-  {
-    id: "sample-wordle-long-a",
-    title: "Long A daily",
-    type: "wordle",
-    wordListTitle: "Long A patterns",
-    difficulty: "Intermediate",
-    updatedAt: "Sample record",
-    status: "Healthy",
-  },
-];
 
 function formatDuration(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -53,7 +14,7 @@ function formatDuration(totalSeconds) {
 }
 
 function formatUpdatedAt(value) {
-  if (!value || value === "Sample record") return value || "Not recorded";
+  if (!value) return "Not recorded";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Saved";
   return new Intl.DateTimeFormat("en-AU", {
@@ -63,13 +24,53 @@ function formatUpdatedAt(value) {
   }).format(date);
 }
 
+function summariseUsage(records) {
+  const byDate = new Map();
+  const typeUsage = { wordle: 0, wordsearch: 0 };
+  let successful = 0;
+  let failed = 0;
+  let pageViews = 0;
+  let totalTimeSeconds = 0;
+
+  for (const record of records) {
+    const day = byDate.get(record.recordedDate) || {
+      date: record.recordedDate,
+      successful: 0,
+      failed: 0,
+    };
+    day.successful += record.successfulGenerations;
+    day.failed += record.failedGenerations;
+    byDate.set(record.recordedDate, day);
+    successful += record.successfulGenerations;
+    failed += record.failedGenerations;
+    pageViews += record.pageViews;
+    totalTimeSeconds += record.totalTimeSeconds;
+    typeUsage[record.activityType] += record.pageViews;
+  }
+
+  const weeklyUsage = [...byDate.values()].map((record) => ({
+    ...record,
+    day: new Intl.DateTimeFormat("en-AU", {
+      weekday: "short",
+      timeZone: "UTC",
+    }).format(new Date(`${record.date}T00:00:00Z`)),
+  }));
+
+  return {
+    weeklyUsage,
+    successful,
+    failed,
+    totalGenerations: successful + failed,
+    pageViews,
+    averageTimeSeconds: pageViews
+      ? Math.round(totalTimeSeconds / pageViews)
+      : 0,
+    typeUsage,
+  };
+}
+
 function buildDashboardData(snapshot, databaseStatus = "connected") {
-  const successful = weeklyUsage.reduce(
-    (total, day) => total + day.successful,
-    0,
-  );
-  const failed = weeklyUsage.reduce((total, day) => total + day.failed, 0);
-  const totalSessions = successful + failed;
+  const usage = summariseUsage(snapshot.usageMetrics);
   const totalWords = snapshot.wordLists.reduce(
     (total, list) => total + list.wordCount,
     0,
@@ -83,17 +84,15 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
   const wordSearchCount = snapshot.activities.filter(
     (activity) => activity.type === "wordsearch",
   ).length;
-  const recentActivities = snapshot.activities.length
-    ? snapshot.activities.slice(0, 5).map((activity) => ({
-        ...activity,
-        difficulty:
-          activity.type === "wordle"
-            ? `${activity.maxGuesses} guesses`
-            : activity.difficulty,
-        updatedAt: formatUpdatedAt(activity.updatedAt),
-        status: "Saved",
-      }))
-    : simulatedActivities;
+  const recentActivities = snapshot.activities.slice(0, 5).map((activity) => ({
+    ...activity,
+    difficulty:
+      activity.type === "wordle"
+        ? `${activity.maxGuesses} guesses`
+        : activity.difficulty,
+    updatedAt: formatUpdatedAt(activity.updatedAt),
+    status: "Saved",
+  }));
 
   const alerts = snapshot.wordLists
     .filter((list) => list.wordCount === 0)
@@ -113,12 +112,23 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
     });
   }
 
-  alerts.push({
-    id: "sample-failures",
-    severity: "warning",
-    title: "Repeated generation failures",
-    detail: "The simulated weekly sample contains 10 failed generations to review.",
-  });
+  if (usage.failed > 0) {
+    alerts.push({
+      id: "generation-failures",
+      severity: "warning",
+      title: "Generation failures recorded",
+      detail: `The persisted reporting sample contains ${usage.failed} failed generations to review.`,
+    });
+  }
+
+  if (snapshot.usageMetrics.length === 0) {
+    alerts.push({
+      id: "no-reporting-data",
+      severity: "notice",
+      title: "No reporting records",
+      detail: "Add usage metrics before relying on generation and time summaries.",
+    });
+  }
 
   if (databaseStatus !== "connected") {
     alerts.unshift({
@@ -131,7 +141,7 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
 
   return {
     dataNote:
-      "Builder totals are read from SQLite. Usage and time metrics are simulated Step 1 records pending persistence in Step 2.",
+      `${snapshot.usageMetrics.length} simulated daily/type records are persisted in SQLite; builder totals come from the same database.`,
     databaseStatus,
     metrics: [
       {
@@ -146,18 +156,18 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
       {
         id: "successful",
         label: "Successful generations",
-        value: successful.toLocaleString("en-AU"),
-        detail: `${((successful / totalSessions) * 100).toFixed(1)}% success rate`,
-        badge: "Sample week",
+        value: usage.successful.toLocaleString("en-AU"),
+        detail: `${usage.totalGenerations ? ((usage.successful / usage.totalGenerations) * 100).toFixed(1) : "0.0"}% success rate`,
+        badge: "Persisted sample",
         tone: "green",
         icon: "check",
       },
       {
         id: "average-time",
         label: "Average time on page",
-        value: formatDuration(183),
-        detail: `Across ${totalSessions} simulated sessions`,
-        badge: "−12 sec",
+        value: formatDuration(usage.averageTimeSeconds),
+        detail: `Across ${usage.pageViews} persisted page views`,
+        badge: "Database average",
         tone: "blue",
         icon: "clock",
       },
@@ -171,26 +181,26 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
         icon: "list",
       },
     ],
-    weeklyUsage,
-    generationTotals: { successful, failed, total: totalSessions },
+    weeklyUsage: usage.weeklyUsage,
+    generationTotals: {
+      successful: usage.successful,
+      failed: usage.failed,
+      total: usage.totalGenerations,
+    },
     activityMix: [
-      {
-        type: "Wordle",
-        count: wordleCount,
-        usage: 149,
-        percentage: 57,
-        isMostUsed: true,
-      },
-      {
-        type: "Word Search",
-        count: wordSearchCount,
-        usage: 112,
-        percentage: 43,
-        isMostUsed: false,
-      },
-    ],
+      { type: "Wordle", count: wordleCount, usage: usage.typeUsage.wordle },
+      { type: "Word Search", count: wordSearchCount, usage: usage.typeUsage.wordsearch },
+    ].map((item) => ({
+      ...item,
+      percentage: usage.pageViews
+        ? Math.round((item.usage / usage.pageViews) * 100)
+        : 0,
+      isMostUsed:
+        usage.pageViews > 0 &&
+        item.usage === Math.max(...Object.values(usage.typeUsage)),
+    })),
     recentActivities,
-    recentActivitiesAreSimulated: snapshot.activities.length === 0,
+    recentActivitiesAreSimulated: false,
     alerts,
     wordListSummary: {
       totalLists: snapshot.wordLists.length,
@@ -207,10 +217,10 @@ function buildDashboardData(snapshot, databaseStatus = "connected") {
   };
 }
 
-async function readBuilderSnapshot() {
+async function readDashboardSnapshot() {
   const connection = await openDatabase();
   try {
-    const [storedLists, storedWords, storedActivities] = await Promise.all([
+    const [storedLists, storedWords, storedActivities, storedUsageMetrics] = await Promise.all([
       connection.db
         .select({
           id: wordLists.id,
@@ -238,6 +248,17 @@ async function readBuilderSnapshot() {
           eq(activityConfigurations.wordListId, wordLists.id),
         )
         .orderBy(desc(activityConfigurations.updatedAt)),
+      connection.db
+        .select({
+          recordedDate: usageMetrics.recordedDate,
+          activityType: usageMetrics.activityType,
+          pageViews: usageMetrics.pageViews,
+          totalTimeSeconds: usageMetrics.totalTimeSeconds,
+          successfulGenerations: usageMetrics.successfulGenerations,
+          failedGenerations: usageMetrics.failedGenerations,
+        })
+        .from(usageMetrics)
+        .orderBy(asc(usageMetrics.recordedDate)),
     ]);
 
     const counts = new Map();
@@ -251,6 +272,7 @@ async function readBuilderSnapshot() {
         wordCount: counts.get(list.id) || 0,
       })),
       activities: storedActivities,
+      usageMetrics: storedUsageMetrics,
     };
   } finally {
     await connection.close();
@@ -258,13 +280,13 @@ async function readBuilderSnapshot() {
 }
 
 export async function readDashboardData() {
-  const snapshot = await readBuilderSnapshot();
+  const snapshot = await readDashboardSnapshot();
   return buildDashboardData(snapshot);
 }
 
 export function unavailableDashboardData() {
   return buildDashboardData(
-    { wordLists: [], activities: [] },
+    { wordLists: [], activities: [], usageMetrics: [] },
     "unavailable",
   );
 }

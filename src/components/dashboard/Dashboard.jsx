@@ -20,6 +20,7 @@ function MetricCard({ metric }) {
 
 function GenerationChart({ data, totals }) {
   const maxTotal = Math.max(
+    1,
     ...data.map((item) => item.successful + item.failed),
   );
 
@@ -28,7 +29,7 @@ function GenerationChart({ data, totals }) {
       <div className={styles.panelHeader}>
         <div>
           <h2>Generation activity</h2>
-          <p>Successful and failed outputs over the simulated sample week</p>
+          <p>Successful and failed outputs from the persisted sample week</p>
         </div>
         <div className={styles.legend} aria-label="Chart legend">
           <span><i className={styles.successDot} />Successful</span>
@@ -86,7 +87,7 @@ function ActivityMix({ data }) {
       <div className={styles.panelHeader}>
         <div>
           <h2>Activity mix</h2>
-          <p>Usage by activity type in the simulated sample</p>
+          <p>Persisted page views grouped by activity type</p>
         </div>
       </div>
 
@@ -94,7 +95,7 @@ function ActivityMix({ data }) {
         <div
           className={styles.donut}
           role="img"
-          aria-label={`${wordlePercentage}% Wordle and ${100 - wordlePercentage}% Word Search usage`}
+          aria-label={`${data[0].percentage}% Wordle and ${data[1].percentage}% Word Search usage`}
           style={{
             background: `conic-gradient(#654cc5 0 ${wordlePercentage}%, #469369 ${wordlePercentage}% 100%)`,
           }}
@@ -122,7 +123,9 @@ function ActivityMix({ data }) {
           </div>
         ))}
       </div>
-      <p className={styles.insight}><strong>{mostUsed.type}</strong> is the most-used activity type.</p>
+      <p className={styles.insight}>
+        {mostUsed ? <><strong>{mostUsed.type}</strong> is the most-used activity type.</> : "No activity usage has been recorded yet."}
+      </p>
     </article>
   );
 }
@@ -163,6 +166,11 @@ function RecentActivities({ activities, simulated }) {
                 <td>{activity.updatedAt}</td>
               </tr>
             ))}
+            {activities.length === 0 && (
+              <tr>
+                <td colSpan="5">No saved activity configurations yet.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

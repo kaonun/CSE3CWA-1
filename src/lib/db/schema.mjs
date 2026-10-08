@@ -87,3 +87,29 @@ export const activityConfigurations = sqliteTable("activity_configurations", {
   check("activity_theme", sql`${t.outputTheme} in ('light', 'dark')`),
   check("activity_filename", sql`length(${t.outputFilename}) between 6 and 120 and ${t.outputFilename} not glob '*[^a-zA-Z0-9_.-]*' and substr(${t.outputFilename}, -5) = '.html'`),
 ]);
+
+// Reporting records are daily activity-type aggregates. Keeping the underlying
+// counts and total duration allows the dashboard to calculate rates and averages
+// rather than storing values that can become inconsistent with one another.
+export const usageMetrics = sqliteTable("usage_metrics", {
+  id: id(),
+  recordedDate: text("recorded_date").notNull(),
+  activityType: text("activity_type").notNull(),
+  pageViews: integer("page_views").notNull().default(0),
+  totalTimeSeconds: integer("total_time_seconds").notNull().default(0),
+  successfulGenerations: integer("successful_generations").notNull().default(0),
+  failedGenerations: integer("failed_generations").notNull().default(0),
+  simulated: integer("simulated", { mode: "boolean" }).notNull().default(true),
+  ...timestamps(),
+}, (t) => [
+  uniqueIndex("usage_date_type_source").on(t.recordedDate, t.activityType, t.simulated),
+  index("usage_recorded_date").on(t.recordedDate),
+  check("usage_recorded_date_format", sql`${t.recordedDate} glob '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`),
+  check("usage_activity_type", sql`${t.activityType} in ('wordle', 'wordsearch')`),
+  check("usage_page_views", sql`${t.pageViews} >= 0 and typeof(${t.pageViews}) = 'integer'`),
+  check("usage_total_time", sql`${t.totalTimeSeconds} >= 0 and typeof(${t.totalTimeSeconds}) = 'integer'`),
+  check("usage_successful_generations", sql`${t.successfulGenerations} >= 0 and typeof(${t.successfulGenerations}) = 'integer'`),
+  check("usage_failed_generations", sql`${t.failedGenerations} >= 0 and typeof(${t.failedGenerations}) = 'integer'`),
+  check("usage_duration_shape", sql`(${t.pageViews} = 0 and ${t.totalTimeSeconds} = 0) or (${t.pageViews} > 0 and ${t.totalTimeSeconds} >= ${t.pageViews})`),
+  check("usage_simulated_boolean", sql`${t.simulated} in (0, 1)`),
+]);

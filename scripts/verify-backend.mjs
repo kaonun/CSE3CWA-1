@@ -93,11 +93,19 @@ try {
     assert.deepEqual(await response.json(), { status: "ok", database: "sqlite" });
   });
   await check("all existing frontend routes still render", async () => {
-    for (const route of ["/", "/wordle", "/wordsearch", "/library", "/about", "/settings"]) {
+    for (const route of ["/", "/wordle", "/wordsearch", "/library", "/dashboard", "/about", "/settings"]) {
       const response = await fetch(base + route);
       assert.equal(response.status, 200, route);
       assert.match(await response.text(), /Phoneme/);
     }
+  });
+  await check("dashboard renders persisted reporting aggregates", async () => {
+    const response = await fetch(`${base}/dashboard`);
+    assert.equal(response.status, 200);
+    const page = await response.text();
+    assert.match(page, /251/);
+    assert.match(page, /10 failed generations/);
+    assert.match(page, /Persisted sample/);
   });
   await check("production browser scripts and styles are served", async () => {
     const page = await (await fetch(`${base}/wordle`)).text();

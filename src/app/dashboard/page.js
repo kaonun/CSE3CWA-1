@@ -14,6 +14,10 @@ export const metadata = {
     "Operational metrics and reporting for phoneme-based classroom activities.",
 };
 
+// Dashboard summaries must be read from the current database on every request,
+// rather than being captured in the production build output.
+export const dynamic = "force-dynamic";
+
 async function loadDashboardData() {
   try {
     return await readDashboardData();

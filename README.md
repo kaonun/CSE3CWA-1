@@ -7,16 +7,17 @@ and download self-contained HTML files that students can play offline.
 ## Assessment 3 progress
 
 Assessment 3 builds directly on the completed frontend, API, SQLite, CRUD and
-Docker work from Assessment 2. Step 1 adds a responsive operational dashboard
+Docker work from Assessment 2. Steps 1 and 2 add a responsive operational dashboard
 at [http://localhost:3000/dashboard](http://localhost:3000/dashboard) with:
 
 - live word-list and activity-configuration totals from SQLite;
-- simulated weekly generation, failure and time-on-page records;
+- a persisted simulated week of generation, failure and time-on-page records;
 - an activity-type usage summary, alerts and word-list readiness;
 - links to the existing `/health` and `/health/database` monitoring endpoints.
 
-The interface labels simulated records explicitly. Persisting usage records and
-reporting statistics in the database is reserved for Assessment 3 Step 2.
+The interface labels simulated records explicitly. Step 2 stores 14 daily/type
+aggregates in SQLite and derives success rate, average time, failure count and
+most-used activity type from those records on every dashboard request.
 
 Repository history is preserved by assessment branch: `assessment-1`,
 `assessment-2` and `assessment-3`. The `master` branch always represents the
@@ -36,7 +37,8 @@ binds to loopback and updates automatically when code is saved. Keep its termina
 running; Ctrl+C stops it. To use another port: `npm run dev -- --port 3001`.
 
 Development startup applies database migrations and seeds the 43 reference
-phonemes. It does not create example teacher lists or overwrite saved content.
+phonemes plus the idempotent simulated reporting sample. It does not create
+example teacher lists or overwrite saved teacher content.
 
 For production:
 

@@ -10,6 +10,8 @@ Schema: `src/lib/db/schema.mjs`; migrations: `drizzle/`.
 word_lists ───< words ───< word_phonemes >─── phonemes
      └───< activity_configurations
                  └── Wordle answer references a word in the same list
+
+usage_metrics (daily activity-type reporting aggregates)
 ```
 
 - `phonemes`: 43 complete reference symbols with labels/examples/groups.
@@ -19,6 +21,9 @@ word_lists ───< words ───< word_phonemes >─── phonemes
   A multi-character phoneme occupies one row; repeated tokens remain separate.
 - `activity_configurations`: list, title/type, answer/guesses or grid/difficulty,
   hints, output theme/filename and timestamps. Multiple configurations share a list.
+- `usage_metrics`: date, activity type, page views, total time, successful and
+  failed generations, simulated/live source flag and timestamps. The dashboard
+  derives averages, rates and most-used type from these stored base values.
 
 Readers sort positions and reject missing, gapped or unsupported tokens.
 Database CHECK constraints protect settings shapes, lengths, booleans and names.
@@ -39,8 +44,9 @@ reuses one connection and queues database operations across routes. Storage is
 outside build artifacts and excluded from Git/Docker's build context.
 
 `npm run dev`, `npm run start` and Docker startup apply migrations before serving
-requests. They seed only the phoneme inventory. Repeated startup preserves
-teacher data; a failed migration stops boot.
+requests. They seed the phoneme inventory and a deterministic 14-row simulated
+reporting week. Stable IDs and a date/type/source unique index make the seed
+idempotent. Repeated startup preserves teacher data; a failed migration stops boot.
 
 ## Schema changes
 
