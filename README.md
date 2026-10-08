@@ -4,6 +4,24 @@ A phoneme-based classroom activity builder for Speech Pathology teachers.
 Save word lists and activity settings, preview Wordle and Word Search games,
 and download self-contained HTML files that students can play offline.
 
+## Assessment 3 progress
+
+Assessment 3 builds directly on the completed frontend, API, SQLite, CRUD and
+Docker work from Assessment 2. Step 1 adds a responsive operational dashboard
+at [http://localhost:3000/dashboard](http://localhost:3000/dashboard) with:
+
+- live word-list and activity-configuration totals from SQLite;
+- simulated weekly generation, failure and time-on-page records;
+- an activity-type usage summary, alerts and word-list readiness;
+- links to the existing `/health` and `/health/database` monitoring endpoints.
+
+The interface labels simulated records explicitly. Persisting usage records and
+reporting statistics in the database is reserved for Assessment 3 Step 2.
+
+Repository history is preserved by assessment branch: `assessment-1`,
+`assessment-2` and `assessment-3`. The `master` branch always represents the
+latest tested application.
+
 ## Run locally
 
 Requires Node.js 24, npm and a modern browser.
