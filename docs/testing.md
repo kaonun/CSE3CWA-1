@@ -50,8 +50,7 @@ profile and must only be used on appropriately sized or distributed injectors.
 
 The runner rejects non-loopback targets, requires a separate high-load flag for
 stages above 100, and writes ignored JTL/log/HTML artifacts under
-`jmeter/results/`. See [the measured baseline](load-testing.md) and the
-[JMeter commands](../jmeter/README.md).
+`jmeter/results/`. See the [JMeter commands](../jmeter/README.md).
 
 ## Docker quality gate
 
@@ -135,8 +134,7 @@ npm run test:accessibility
 
 The command writes viewable HTML reports and machine-readable JSON/CSV summaries
 to `lighthouse/results/<timestamp>/`. These generated reports are intentionally
-ignored by Git; the measured baseline and interpretation are documented in
-[`docs/accessibility.md`](accessibility.md).
+ignored by Git.
 
 ## Maintenance checks
 
@@ -155,8 +153,6 @@ ignored by Git; the measured baseline and interpretation are documented in
   lockfile and rerun both quality gates; do not use forced upgrades or treat a clean
   runtime audit as a complete security review. Keep tooling on trusted source and
   do not expose development, migration or database inspection servers publicly.
-- Keep secrets, databases and local agent metadata untracked. Next.js may recreate
-  ignored `AGENTS.md`/`CLAUDE.md` files during agent-assisted development.
 
 ## Common failures
 

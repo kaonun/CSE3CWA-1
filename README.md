@@ -4,35 +4,21 @@ A phoneme-based classroom activity builder for Speech Pathology teachers.
 Save word lists and activity settings, preview Wordle and Word Search games,
 and download self-contained HTML files that students can play offline.
 
-## Assessment 3 progress
+## Features
 
-Assessment 3 builds directly on the completed frontend, API, SQLite, CRUD and
-Docker work from Assessment 2. Steps 1–3 add a responsive operational dashboard
-at [http://localhost:3000/dashboard](http://localhost:3000/dashboard) with:
+The application provides:
 
 - live word-list and activity-configuration totals from SQLite;
 - a persisted simulated week of generation, failure and time-on-page records;
 - live generation counters and bounded Wordle/Word Search page-duration telemetry;
 - an activity-type usage summary, alerts and word-list readiness;
-- visible links to `/health`, `/health/database` and `/health/metrics` monitoring outputs.
+- visible links to `/health`, `/health/database` and `/health/metrics`;
+- Playwright browser tests, parameterised JMeter load tests and Lighthouse
+  accessibility checks.
 
-The interface labels simulated records explicitly. Step 2 stores 14 daily/type
-aggregates in SQLite and derives success rate, average time, failure count and
-most-used activity type from those records on every dashboard request.
-Step 3 instruments real generation attempts and page usage without changing
-saved teacher content, while the metrics health endpoint provides a concise,
-machine-readable operational snapshot.
-Step 4 adds Playwright browser tests for teacher CRUD and a solved/downloaded
-student Wordle, plus a parameterised JMeter plan and measured five-stage local
-production baseline.
-Step 5 audits the four primary routes with Lighthouse. The initial Dashboard
-score of 92 exposed progressbar semantics and dark-mode contrast issues; after
-those fixes, Dashboard, Library, Wordle and Word Search each score 100 in the
-automated accessibility category.
-
-Repository history is preserved by assessment branch: `assessment-1`,
-`assessment-2` and `assessment-3`. The `master` branch always represents the
-latest tested application.
+The Dashboard labels its deterministic sample records separately from live
+usage. Teacher-created lists, activity configurations and live metrics persist
+only in the local SQLite database.
 
 ## Run locally
 
@@ -138,10 +124,6 @@ authorization, trusted-proxy handling, backups and a concurrency policy.
 - [Database schema, migrations and backups](docs/database.md)
 - [Docker runtime and certificate trust](docs/docker.md)
 - [Testing and troubleshooting](docs/testing.md)
-- [JMeter load-test method and baseline](docs/load-testing.md)
-- [Lighthouse accessibility method and results](docs/accessibility.md)
-- [Demonstration video guide](docs/video-guide.md)
-- [Final submission checklist](docs/submission-checklist.md)
 
 ```text
 src/app/          Pages and thin Next.js Route Handlers

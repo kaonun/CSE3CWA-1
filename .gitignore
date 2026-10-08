@@ -46,12 +46,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-# Local agent metadata (Next.js may regenerate the Markdown files during dev).
-/.claude/
-/AGENTS.md
-/CLAUDE.md
-/Assignment2Specs.md
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
