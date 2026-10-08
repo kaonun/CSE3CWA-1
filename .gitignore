@@ -46,6 +46,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Locally generated framework metadata; never publish it with application code.
+/AGENTS.md
+/CLAUDE.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
