@@ -23,10 +23,15 @@ The command stops on the first failed stage:
    exercising pages/assets, health and metrics outputs, live telemetry, CRUD,
    pagination, validation, concurrent writes, saved generation, export safety
    and offline runtime gameplay.
+7. Playwright starts another production server with a fresh temporary database.
+   Chromium performs teacher list/word/configuration CRUD and a student workflow
+   that loads, solves and downloads a saved Wordle.
 
 Individual commands are `npm run lint`, `npm run build`,
 `npm run test:client-errors`, `npm run test:ui-behavior`, `npm run test:database`
 and `npm run test:backend`.
+Install Playwright's pinned browser once with `npx playwright install chromium`.
+`npm run test:e2e` builds first; `test:e2e:built` reuses the current build.
 Build before running the backend checks. `npm run start` also requires a build
 and reports that requirement before creating/migrating storage when files are absent.
 
@@ -34,6 +39,19 @@ The default tests do not write to `data/phonemele.db` or use port 3000. Their
 temporary storage is validated before cleanup. Deliberately damaged-data and
 readiness fixtures run only against the backend suite's private database.
 Never point a fixture writer at teacher storage.
+
+## JMeter load testing
+
+The CLI-only JMeter workflow is separate from `check` because it intentionally
+loads a running server. Apache JMeter 5.6.3 is required. `npm run test:load`
+runs one smoke user; `npm run test:load:staged` runs the safe local 1/10/25/50/100
+profile. The explicit `test:load:full` command enables the 1/10/100/1,000/10,000
+profile and must only be used on appropriately sized or distributed injectors.
+
+The runner rejects non-loopback targets, requires a separate high-load flag for
+stages above 100, and writes ignored JTL/log/HTML artifacts under
+`jmeter/results/`. See [the measured baseline](load-testing.md) and the
+[JMeter commands](../jmeter/README.md).
 
 ## Docker quality gate
 

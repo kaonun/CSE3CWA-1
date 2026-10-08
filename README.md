@@ -22,6 +22,9 @@ most-used activity type from those records on every dashboard request.
 Step 3 instruments real generation attempts and page usage without changing
 saved teacher content, while the metrics health endpoint provides a concise,
 machine-readable operational snapshot.
+Step 4 adds Playwright browser tests for teacher CRUD and a solved/downloaded
+student Wordle, plus a parameterised JMeter plan and measured five-stage local
+production baseline.
 
 Repository history is preserved by assessment branch: `assessment-1`,
 `assessment-2` and `assessment-3`. The `master` branch always represents the
@@ -110,11 +113,14 @@ See [Docker setup](docs/docker.md) for TLS-scanning networks and troubleshooting
 ```sh
 npm run check
 npm run test:docker
+npm run test:load:staged
 ```
 
 `check` runs lint, a production build, client-error and UI-behavior checks,
-database checks and HTTP regressions. Tests use isolated data and temporary servers; they do
-not overwrite the teacher database. See [testing](docs/testing.md).
+database checks, HTTP regressions and two Playwright browser workflows. Tests use
+isolated data and temporary servers; they do not overwrite the teacher database.
+JMeter requires a separately installed Apache JMeter 5.6.3 and a running local
+production server. See [testing](docs/testing.md).
 
 The application is a local classroom prototype, not an authenticated multi-user
 service. Keep it on loopback. Public deployment requires authentication,
@@ -126,6 +132,7 @@ authorization, trusted-proxy handling, backups and a concurrency policy.
 - [Database schema, migrations and backups](docs/database.md)
 - [Docker runtime and certificate trust](docs/docker.md)
 - [Testing and troubleshooting](docs/testing.md)
+- [JMeter load-test method and baseline](docs/load-testing.md)
 
 ```text
 src/app/          Pages and thin Next.js Route Handlers
